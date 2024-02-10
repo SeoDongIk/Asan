@@ -10,33 +10,42 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.asan_service.ui.theme.Asan_ServiceTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
+            val navController = rememberNavController()
             Asan_ServiceTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Greeting("Android")
+                    NavHost(
+                        navController = navController,
+                        startDestination = "MainScreen"
+                    ) {
+                        composable("MainScreen") {
+                            MainScreen(navController)
+                        }
+                        composable("ConnectScreen") {
+                            ConnectScreen(navController)
+                        }
+                        composable("AlarmScreen") {
+                            AlaramScreen(navController)
+                        }
+                        composable("StatisticScreen") {
+                            StatisticScreen(navController)
+                        }
+                    }
+
                 }
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    Asan_ServiceTheme {
-        Greeting("Android")
-    }
-}
