@@ -5,10 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.outlined.AddCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -48,8 +45,8 @@ fun ConnectScreen(navController : NavController) {
         }
     ) {
         val data = listOf(
-            ConnectData("Mac Donut", 304, 79, true, 0),
-            ConnectData("John Doe", 301, 87, false, 3),
+            ConnectData("Mac Donut is good is good", 304, 79, true, 0),
+            ConnectData("John Doe", 301, 87, true, 3),
             ConnectData("Jane Smith", 302, 61, true, 2),
             ConnectData("Mike Johnson", 303, 92, false, 5)
         )
@@ -125,7 +122,7 @@ fun ConnectScreen(navController : NavController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(255, 192, 203))
+                        .background(Color.LightGray)
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -164,7 +161,9 @@ fun ConnectScreen(navController : NavController) {
                         modifier = Modifier
                             .weight(1f)
                             .padding(horizontal = 4.dp)
-                            .background(color = Color.White, shape = RoundedCornerShape(4.dp)),
+                            .background(color = Color.White, shape = RoundedCornerShape(4.dp))
+                            .height(IntrinsicSize.Min)
+                            .align(Alignment.CenterVertically), // 세로 가운데 정렬 추가
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -174,6 +173,7 @@ fun ConnectScreen(navController : NavController) {
                         )
                     }
                 }
+
                 if (personIndex < disconnectedPersons.size - 1) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
@@ -214,7 +214,7 @@ fun ConnectScreen(navController : NavController) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(255, 192, 203))
+                        .background(Color.LightGray)
                         .padding(vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -253,7 +253,9 @@ fun ConnectScreen(navController : NavController) {
                         modifier = Modifier
                             .weight(1f)
                             .padding(horizontal = 4.dp)
-                            .background(color = Color.White, shape = RoundedCornerShape(4.dp)),
+                            .background(color = Color.White, shape = RoundedCornerShape(4.dp))
+                            .height(IntrinsicSize.Min)
+                            .align(Alignment.CenterVertically), // 세로 가운데 정렬 추가
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -263,6 +265,7 @@ fun ConnectScreen(navController : NavController) {
                         )
                     }
                 }
+
                 if (personIndex < connectedPersons.size - 1) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
