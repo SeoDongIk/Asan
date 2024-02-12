@@ -1,8 +1,11 @@
 package com.example.asan_service
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -11,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -45,251 +49,88 @@ fun ConnectScreen(navController : NavController) {
         }
     ) {
         val data = listOf(
-            ConnectData("Mac Donut is good is good", 304, 79, true, 0),
-            ConnectData("John Doe", 301, 87, true, 3),
-            ConnectData("Jane Smith", 302, 61, true, 2),
-            ConnectData("Mike Johnson", 303, 92, false, 5)
+            Triple(
+                Pair("첫번째 환자", "301호"),
+                Pair(painterResource(id = R.drawable.ic_launcher_background), "80"),
+                Pair(painterResource(id = R.drawable.ic_launcher_background), "Text 3")
+            ),
+            Triple(
+                Pair("두번째 환자", "302호"),
+                Pair(painterResource(id = R.drawable.ic_launcher_background), "80"),
+                Pair(painterResource(id = R.drawable.ic_launcher_background), "Text 6")
+            ),
+            Triple(
+                Pair("세번째 환자", "303호"),
+                Pair(painterResource(id = R.drawable.ic_launcher_background), "80"),
+                Pair(painterResource(id = R.drawable.ic_launcher_background), "Text 3")
+            ),
+            Triple(
+                Pair("네번째 환자", "304호"),
+                Pair(painterResource(id = R.drawable.ic_launcher_background), "80"),
+                Pair(painterResource(id = R.drawable.ic_launcher_background), "Text 3")
+            ),
+            Triple(
+                Pair("다섯번째 환자", "305호"),
+                Pair(painterResource(id = R.drawable.ic_launcher_background), "80"),
+                Pair(painterResource(id = R.drawable.ic_launcher_background), "Text 3")
+            ),
+            Triple(
+                Pair("여섯번째 환자", "306호"),
+                Pair(painterResource(id = R.drawable.ic_launcher_background), "80"),
+                Pair(painterResource(id = R.drawable.ic_launcher_background), "Text 3")
+            ),
         )
-
-        LazyColumn(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.LightGray)
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "이름",
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp)
-                            .background(color = Color.White, shape = RoundedCornerShape(4.dp))
-                            .height(48.dp)
-                            .align(Alignment.CenterVertically),
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        text = "심박수",
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp)
-                            .background(color = Color.White, shape = RoundedCornerShape(4.dp))
-                            .height(48.dp)
-                            .align(Alignment.CenterVertically),
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        text = "연결 상태",
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp)
-                            .background(color = Color.White, shape = RoundedCornerShape(4.dp))
-                            .height(48.dp)
-                            .align(Alignment.CenterVertically),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    repeat(3) {
-                        Box(
-                            modifier = Modifier
-                                .height(1.dp)
-                                .width(4.dp)
-                                .background(color = Color.Gray)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            val (connectedPersons, disconnectedPersons) = data.partition { it.isConnected }
-
-            items(disconnectedPersons.size) { personIndex ->
-                val person = disconnectedPersons[personIndex]
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.LightGray)
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp)
-                            .background(color = Color.White, shape = RoundedCornerShape(4.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = person.name,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 8.dp) // 좌우 여백 추가
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp)
-                            .background(color = Color.White, shape = RoundedCornerShape(4.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_launcher_background), // 아이콘 리소스를 여기에 넣으세요.
-                            contentDescription = null, // contentDescription 설정
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Text(
-                            text = person.heartRate.toString(),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(start = 4.dp) // 텍스트와 아이콘 사이의 여백 추가
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp)
-                            .background(color = Color.White, shape = RoundedCornerShape(4.dp))
-                            .height(IntrinsicSize.Min)
-                            .align(Alignment.CenterVertically), // 세로 가운데 정렬 추가
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_launcher_background), // 아이콘 리소스를 여기에 넣으세요.
-                            contentDescription = null, // contentDescription 설정
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-
-                if (personIndex < disconnectedPersons.size - 1) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        repeat(3) {
-                            Box(
-                                modifier = Modifier
-                                    .height(1.dp)
-                                    .width(4.dp)
-                                    .background(color = Color.Gray)
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    repeat(3) {
-                        Box(
-                            modifier = Modifier
-                                .height(1.dp)
-                                .width(4.dp)
-                                .background(color = Color.Gray)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            items(connectedPersons.size) { personIndex ->
-                val person = connectedPersons[personIndex]
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.LightGray)
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp)
-                            .background(color = Color.White, shape = RoundedCornerShape(4.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = person.name,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 8.dp) // 좌우 여백 추가
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp)
-                            .background(color = Color.White, shape = RoundedCornerShape(4.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_launcher_background), // 아이콘 리소스를 여기에 넣으세요.
-                            contentDescription = null, // contentDescription 설정
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Text(
-                            text = person.heartRate.toString(),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(start = 4.dp) // 텍스트와 아이콘 사이의 여백 추가
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 4.dp)
-                            .background(color = Color.White, shape = RoundedCornerShape(4.dp))
-                            .height(IntrinsicSize.Min)
-                            .align(Alignment.CenterVertically), // 세로 가운데 정렬 추가
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_launcher_background), // 아이콘 리소스를 여기에 넣으세요.
-                            contentDescription = null, // contentDescription 설정
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-
-                if (personIndex < connectedPersons.size - 1) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        repeat(3) {
-                            Box(
-                                modifier = Modifier
-                                    .height(1.dp)
-                                    .width(4.dp)
-                                    .background(color = Color.Gray)
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-            }
-        }
-
+        MultiRowColumnTable(data = data)
     }
 }
 
-data class ConnectData(val name: String, val roomNumber: Int, val heartRate: Int, val isConnected: Boolean, val errorTime: Int)
 
+@Composable
+fun MultiRowColumnTable(data: List<Triple<Pair<String, String>, Pair<Painter, String>, Pair<Painter, String>>>) {
+    LazyColumn(modifier = Modifier.fillMaxSize()) {
+        items(data) { row ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 첫 번째 열: 텍스트 2개 세로 배치
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(text = row.first.first)
+                    Text(text = row.first.second)
+                }
 
+                // 두 번째 열: 아이콘 1개와 텍스트 1개 가로 배치
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = row.second.first,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = row.second.second)
+                }
 
+                // 세 번째 열: 아이콘 1개와 텍스트 1개 세로 배치
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Image(
+                        painter = row.third.first,
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Text(text = row.third.second)
+                }
+            }
+        }
+    }
+}

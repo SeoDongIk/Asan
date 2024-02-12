@@ -25,7 +25,6 @@ fun MainScreen(navController : NavController) {
     var VibrateisOn by remember { mutableStateOf(false) }
     var PopUpisOn by remember { mutableStateOf(false) }
 
-
     NavigationDrawer(
         drawerContent = {
             Row(
@@ -262,7 +261,7 @@ fun MainScreen(navController : NavController) {
                         .padding(16.dp)
                 ) {
                     //
-                    // 이미지 넣어야 한다.
+                    // 이미지는 url 형태로 전달받게 하는 것이 좋을 것 같다.
                     //
 
                     Row(
