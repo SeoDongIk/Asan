@@ -1,6 +1,8 @@
 package com.example.asan_service
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,10 +16,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.asan_service.ui.theme.Asan_ServiceTheme
+import dagger.hilt.android.AndroidEntryPoint
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        startService(Intent(this, MyWebSocketService::class.java))
+
         setContent {
             val navController = rememberNavController()
             Asan_ServiceTheme {
@@ -41,8 +46,10 @@ class MainActivity : ComponentActivity() {
                         composable("StatisticScreen") {
                             StatisticScreen(navController)
                         }
+                        composable("BackgroundSettingScreen") {
+                            BackgroundSettingScreen(navController)
+                        }
                     }
-
                 }
             }
         }

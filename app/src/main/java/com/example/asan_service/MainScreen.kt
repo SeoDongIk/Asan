@@ -199,7 +199,25 @@ fun MainScreen(navController : NavController) {
                         .padding(start = 8.dp)
                 )
             }
-
+            Row(
+                modifier = Modifier
+                    .background(Color.Blue)
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "도면 설정",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    modifier = Modifier
+                        .clickable {
+                            navController.navigate("BackgroundSettingScreen")
+                        }
+                        .weight(1f)
+                        .padding(start = 8.dp)
+                )
+            }
             Row(
                 modifier = Modifier
                     .background(Color.Blue)
@@ -264,25 +282,42 @@ fun MainScreen(navController : NavController) {
                     // 이미지는 url 형태로 전달받게 하는 것이 좋을 것 같다.
                     //
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                    Box(
+                        modifier = Modifier
+                            .weight(5f)
+                            .fillMaxWidth()
+                            .background(color = Color.Blue)
                     ) {
-                        Button(
-                            onClick = { navController.navigate("AlarmScreen") },
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp)
-                                .weight(1f)
+
+
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            Text(text = "발생 알람")
-                        }
-                        Button(
-                            onClick = { navController.navigate("ConnectScreen") },
-                            modifier = Modifier
-                                .padding(horizontal = 8.dp)
-                                .weight(1f)
-                        ) {
-                            Text(text = "연결 상태")
+                            Button(
+                                onClick = { navController.navigate("AlarmScreen") },
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp)
+                                    .weight(1f)
+                            ) {
+                                Text(text = "발생 알람")
+                            }
+                            Button(
+                                onClick = { navController.navigate("ConnectScreen") },
+                                modifier = Modifier
+                                    .padding(horizontal = 8.dp)
+                                    .weight(1f)
+                            ) {
+                                Text(text = "연결 상태")
+                            }
                         }
                     }
                 }
