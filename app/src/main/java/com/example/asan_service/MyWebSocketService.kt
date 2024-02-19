@@ -5,32 +5,15 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.room.Room
 import com.example.asan_service.core.ApiService
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import okhttp3.*
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class MyWebSocketService : Service() {
 
     private val CHANNEL_ID = "MyForegroundServiceChannel"
     private val NOTIFICATION_ID = 12345
-
-    private lateinit var webSocket: WebSocket
-    private val client = OkHttpClient.Builder()
-        .addInterceptor(HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        })
-        .build()
-    private val retrofit = Retrofit.Builder()
-        .baseUrl("https://jsonplaceholder.typicode.com/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-    private val apiService = retrofit.create(ApiService::class.java)
 
     override fun onCreate() {
         super.onCreate()
@@ -38,35 +21,27 @@ class MyWebSocketService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-//        connectWebSocket()
-        return super.onStartCommand(intent, flags, startId)
-    }
 
-    private fun connectWebSocket() {
-        val request = Request.Builder()
-            .url("ws://your_websocket_url")
-            .build()
+        val watchService = ApiService.create()
 
-        webSocket = client.newWebSocket(request, object : WebSocketListener() {
-            override fun onOpen(webSocket: WebSocket, response: Response) {
-                Log.d("WebSocket", "Connection established")
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                val response = watchService.getWatchList()
+                Log.d("dfdf", response.toString())
+
+                if (response.status == 200) {
+                    val watchList = response.data.watchList
+                    Log.d("dfdf", "1")
+                } else {
+                    Log.d("dfdf", "2")
+                }
+            } catch (e: Exception) {
+                Log.d("dfdf", "3")
             }
-
-            override fun onMessage(webSocket: WebSocket, text: String) {
-                Log.d("WebSocket", "Received message: $text")
-                saveToDatabase(text)
-            }
-
-            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                Log.e("WebSocket", "Connection failed", t)
-            }
-        })
-    }
-
-    private fun saveToDatabase(message: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-
         }
+
+
+        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -75,7 +50,6 @@ class MyWebSocketService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        webSocket.cancel()
     }
 
     private fun createNotificationChannel() {
