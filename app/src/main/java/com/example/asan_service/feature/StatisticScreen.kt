@@ -1,4 +1,4 @@
-package com.example.asan_service
+package com.example.asan_service.feature
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -10,11 +10,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import kotlin.random.Random
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,6 +49,7 @@ fun StatisticScreen(navController : NavController) {
         }
     ) {
         var selectedItem by remember { mutableStateOf<Item?>(null) }
+        val scrollState = rememberScrollState()
 
         val items = listOf(
             Item("Item 1", "Room A", "12345", "Jan 2024 - Feb 2024"),
@@ -61,6 +66,7 @@ fun StatisticScreen(navController : NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .border(width = 1.dp, color = Color.Blue) // 테두리 추가
         ) {
             DropdownLayout(
@@ -89,6 +95,25 @@ fun StatisticScreen(navController : NavController) {
                     modifier = Modifier.padding(start = 16.dp)
                 )
             }
+
+            Surface(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxSize(),
+                color = Color.Cyan
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+                    repeat(5) {
+                        Graph()
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
+            }
+
         }
     }
 }
@@ -176,4 +201,40 @@ fun DropdownLayout(
             )
         }
     }
+}
+
+@Composable
+fun Graph() {
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp)
+    ) {
+        val boxWidth = 300.dp.toPx()
+        val boxHeight = 100.dp.toPx()
+        val barWidth = 5.dp.toPx()
+        val barSpacing = 5.dp.toPx()
+        val maxBarHeight = boxHeight - 2 * barWidth
+
+        repeat(60) { index ->
+            val x = index * (barWidth + barSpacing)
+            val barHeight = Random.nextInt(0, maxBarHeight.toInt()).toFloat()
+            val y = boxHeight - barHeight
+
+            drawRect(
+                color = when {
+                    barHeight >= 50 -> Color.Green
+                    else -> Color.Blue
+                },
+                topLeft = Offset(x, y),
+                size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
+                style = Stroke(width = barWidth)
+            )
+        }
+    }
+    Text(
+        text = "심박수: ${Random.nextInt(60, 120)}",
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center
+    )
 }

@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.asan_service.feature.StatisticScreen
 import com.example.asan_service.ui.theme.Asan_ServiceTheme
 import dagger.hilt.android.AndroidEntryPoint
 

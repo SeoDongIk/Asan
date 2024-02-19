@@ -6,11 +6,14 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.room.Room
+import com.example.asan_service.core.ApiService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.*
 import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class MyWebSocketService : Service() {
 
@@ -23,6 +26,11 @@ class MyWebSocketService : Service() {
             level = HttpLoggingInterceptor.Level.BODY
         })
         .build()
+    private val retrofit = Retrofit.Builder()
+        .baseUrl("https://jsonplaceholder.typicode.com/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+    private val apiService = retrofit.create(ApiService::class.java)
 
     override fun onCreate() {
         super.onCreate()
