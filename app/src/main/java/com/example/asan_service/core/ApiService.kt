@@ -3,14 +3,14 @@ package com.example.asan_service.core
 import com.example.asan_service.data.WatchResponse
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
+import retrofit2.http.*
 
 interface ApiService {
     @GET("/api/watch")
-    suspend fun getWatchList(): WatchResponse
+    suspend fun getWatchList(@Header("Authorization") token: String): WatchResponse
 
     companion object {
-        private const val BASE_URL = "http://210.102.178.186"
+        private const val BASE_URL = "http://210.102.178.186:8080"
 
         fun create(): ApiService {
             val retrofit = Retrofit.Builder()

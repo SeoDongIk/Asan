@@ -4,9 +4,12 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -14,11 +17,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
@@ -26,14 +32,17 @@ import androidx.core.net.toUri
 import androidx.navigation.NavController
 import java.io.File
 import java.io.FileOutputStream
-
-
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackgroundSettingScreen(navController : NavController) {
     val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
+
+    var dragStart by remember { mutableStateOf(Offset.Zero) }
+    var dragEnd by remember { mutableStateOf(Offset.Zero) }
+    var isDragging by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = true) {
         // 01 uri 스트링 불러오기
@@ -99,7 +108,11 @@ fun BackgroundSettingScreen(navController : NavController) {
 
         if (expanded_square) {
             AlertDialog(
-                onDismissRequest = { expanded_square = false },
+                onDismissRequest = {
+                    expanded_square = false
+                    dragStart = Offset.Zero
+                    dragEnd = Offset.Zero
+                                   },
                 title = { Text("도면에 설정할 호실을 선택해주세요", fontSize = 16.sp) },
                 text = {
                     Column() {
@@ -110,6 +123,8 @@ fun BackgroundSettingScreen(navController : NavController) {
                 confirmButton = {
                     Button(onClick = {
                         expanded_square = false
+                        dragStart = Offset.Zero
+                        dragEnd = Offset.Zero
                     }
                     ) {
                         Text("취소")
@@ -132,6 +147,26 @@ fun BackgroundSettingScreen(navController : NavController) {
                         .weight(5f)
                         .fillMaxWidth()
                         .background(color = Color.Blue)
+                        .pointerInput(Unit) {
+                            detectDragGestures(
+                                onDragStart = { startOffset ->
+                                    dragStart = startOffset
+                                    isDragging = true
+                                    Log.d("dfdf2", "y = ${startOffset.y.roundToInt()}")
+                                },
+                                onDrag = { change, dragAmount ->
+                                    if (isDragging) {
+                                        dragEnd = change.position
+                                        Log.d("dfdf2", "y = ${change.position.y.roundToInt()} | \uD835\uDEE5 ${change.positionChange().y.roundToInt()}")
+                                    }
+                                },
+                                onDragEnd = {
+                                    saveDragRange(dragStart, dragEnd)
+                                    Log.d("dfdf2", "end end!!!")
+                                    expanded_square = true
+                                }
+                            )
+                        }
                 ) {
                     selectedImageUri.value?.let { uri ->
                         val bitmap = uriToBitmap(context, uri)
@@ -143,33 +178,15 @@ fun BackgroundSettingScreen(navController : NavController) {
                             )
                         }
                     }
-
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        repeat(10) {
-                            val row = it
-                            Row(modifier = Modifier.weight(1f)) {
-                                repeat(5) {
-                                    val col = it
-                                    Box(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .fillMaxHeight()
-                                            .fillMaxWidth()
-                                            .border(2.dp, Color.Black)
-                                            .padding(2.dp)
-                                            .clickable {
-                                                setting_room = 5*row+col
-                                                expanded_square = true
-                                            },
-                                        contentAlignment = androidx.compose.ui.Alignment.Center,
-                                    ) {
-                                        Text(
-                                            text = "${it + 1}-${it * 5 + (it + 1)}",
-                                            color = Color.White
-                                        )
-                                    }
-                                }
-                            }
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        drawIntoCanvas {
+                            it.drawRect(
+                                left = dragStart.x,
+                                top = dragStart.y,
+                                right = dragEnd.x,
+                                bottom = dragEnd.y,
+                                paint = Paint().apply { color = Color.Red }
+                            )
                         }
                     }
                 }
@@ -227,4 +244,8 @@ fun saveImage(context: Context, bitmap: ImageBitmap) {
     FileOutputStream(file).use {
         bitmap.asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, it)
     }
+}
+
+fun saveDragRange(start: Offset, end: Offset) {
+    Log.d("dfdf2", start.toString() + " / " + end.toString()  )
 }

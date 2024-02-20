@@ -6,9 +6,11 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.asan_service.core.ApiService
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import ua.naiksoftware.stomp.Stomp
+import ua.naiksoftware.stomp.StompClient
+import ua.naiksoftware.stomp.dto.StompHeader
+import ua.naiksoftware.stomp.dto.StompMessage
 
 class MyWebSocketService : Service() {
 
@@ -23,33 +25,63 @@ class MyWebSocketService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         val watchService = ApiService.create()
-
         GlobalScope.launch(Dispatchers.IO) {
             try {
-                val response = watchService.getWatchList()
-                Log.d("dfdf", response.toString())
-
+                val response = watchService.getWatchList("9999999")
                 if (response.status == 200) {
                     val watchList = response.data.watchList
-                    Log.d("dfdf", "1")
+                    Log.d("dfdf", watchList.toString())
                 } else {
-                    Log.d("dfdf", "2")
+
                 }
             } catch (e: Exception) {
-                Log.d("dfdf", "3")
+
             }
         }
 
+        val client = createStompClient()
+        GlobalScope.launch(Dispatchers.IO) {
+            client.waitForConnection()
+            Log.d("dfdf", "끝")
+            client.subscribe("/queue/sensor/9999999") {
+                Log.d("dfdf", it.toString())
+            }
+        }
 
         return super.onStartCommand(intent, flags, startId)
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return null
+    private fun createStompClient(): StompClient {
+        val client = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://210.102.178.186:8080/ws")
+        val headers = arrayListOf<StompHeader>()
+
+        headers.add(StompHeader("Authorization", "9999999"))
+        headers.add(StompHeader("watchId", "9999999"))
+        client.connect(headers)
+
+        client.lifecycle().subscribe { state ->
+            Log.d("dfdf", state.type.toString())
+        }
+
+        return client
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    private suspend fun StompClient.waitForConnection() {
+        while (!isConnected) {
+            delay(100)
+        }
+    }
+
+    private suspend fun StompClient.subscribe(destination: String, callback: (StompMessage) -> Unit) {
+        withContext(Dispatchers.IO) {
+            this@subscribe.topic(destination).subscribe(callback)
+        }
+    }
+
+    private suspend fun StompClient.disconnect() {
+        withContext(Dispatchers.IO) {
+            this@disconnect.disconnect()
+        }
     }
 
     private fun createNotificationChannel() {
@@ -72,5 +104,13 @@ class MyWebSocketService : Service() {
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentIntent(pendingIntent)
             .build()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+    }
+
+    override fun onBind(intent: Intent?): IBinder? {
+        return null
     }
 }
