@@ -11,6 +11,9 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -24,6 +27,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -66,12 +70,13 @@ fun BackgroundSettingScreen(navController : NavController) {
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    containerColor = Color(0x04, 0x61, 0x66),
                     titleContentColor = MaterialTheme.colorScheme.primary
                 ),
                 title = {
                     Text(
-                        "도면 설정"
+                        "설정",
+                        color = Color.White
                     )
                 },
                 navigationIcon = {
@@ -80,7 +85,8 @@ fun BackgroundSettingScreen(navController : NavController) {
                     }) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = Color.White
                         )
                     }
                 }
@@ -90,6 +96,7 @@ fun BackgroundSettingScreen(navController : NavController) {
         var expanded by remember { mutableStateOf(false) }
         var expanded_square by remember { mutableStateOf(false) }
         var setting_room : Int? by remember { mutableStateOf(null) }
+        var screenToShow by remember { mutableStateOf(Screen.First) }
 
         if (expanded) {
             AlertDialog(
@@ -133,64 +140,18 @@ fun BackgroundSettingScreen(navController : NavController) {
             )
         }
 
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
+            Row(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .weight(5f)
-                        .fillMaxWidth()
-                        .background(color = Color.Blue)
-                        .pointerInput(Unit) {
-                            detectDragGestures(
-                                onDragStart = { startOffset ->
-                                    dragStart = startOffset
-                                    isDragging = true
-                                    Log.d("dfdf2", "y = ${startOffset.y.roundToInt()}")
-                                },
-                                onDrag = { change, dragAmount ->
-                                    if (isDragging) {
-                                        dragEnd = change.position
-                                        Log.d("dfdf2", "y = ${change.position.y.roundToInt()} | \uD835\uDEE5 ${change.positionChange().y.roundToInt()}")
-                                    }
-                                },
-                                onDragEnd = {
-                                    saveDragRange(dragStart, dragEnd)
-                                    Log.d("dfdf2", "end end!!!")
-                                    expanded_square = true
-                                }
-                            )
-                        }
-                ) {
-                    selectedImageUri.value?.let { uri ->
-                        val bitmap = uriToBitmap(context, uri)
-                        if (bitmap != null) {
-                            Image(
-                                bitmap = bitmap,
-                                contentDescription = "Selected Image",
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-                    }
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        drawIntoCanvas {
-                            it.drawRect(
-                                left = dragStart.x,
-                                top = dragStart.y,
-                                right = dragEnd.x,
-                                bottom = dragEnd.y,
-                                paint = Paint().apply { color = Color.Red }
-                            )
-                        }
-                    }
-                }
-
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -203,36 +164,164 @@ fun BackgroundSettingScreen(navController : NavController) {
                     ) {
                         Button(
                             onClick = {
-                                getContent.launch("image/*")
+                                screenToShow = Screen.First
                             },
                             modifier = Modifier
+                                .background(
+                                    if (screenToShow != Screen.First) Color(
+                                        0x04,
+                                        0x61,
+                                        0x66
+                                    ) else Color.White
+                                )
                                 .padding(horizontal = 8.dp)
-                                .weight(1f)
+                                .weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                         ) {
-                            Text(text = "도면 설정")
+                            Text(text = "도면 설정",
+                                color =   if (screenToShow == Screen.First) Color(
+                                    0x04,
+                                    0x61,
+                                    0x66
+                                ) else Color.White
+                            )
                         }
                         Button(
                             onClick = {
-                                expanded = true
+                                screenToShow = Screen.Second
                             },
                             modifier = Modifier
+                                .background(
+                                    if (screenToShow != Screen.First) Color.White else Color(
+                                        0x04,
+                                        0x61,
+                                        0x66
+                                    )
+                                )
                                 .padding(horizontal = 8.dp)
-                                .weight(1f)
+                                .weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
                         ) {
-                            Text(text = "주의 사항")
+                            Text(text = "스캐너 설정",
+                                color =   if (screenToShow == Screen.First) Color.White else Color(
+                                    0x04,
+                                    0x61,
+                                    0x66
+                                )
+                            )
                         }
                     }
                 }
             }
+
+            var data: List<String> = listOf("웨어러블 1", "웨어러블 2", "웨어러블 3", "웨어러블 4", "웨어러블 5")
+
+            when(screenToShow) {
+                Screen.First ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(16.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(color = Color(0xFF, 0x57, 0xC1, 0x14))
+                                    .pointerInput(Unit) {
+                                        detectDragGestures(
+                                            onDragStart = { startOffset ->
+                                                dragStart = startOffset
+                                                isDragging = true
+                                                Log.d("dfdf2", "y = ${startOffset.y.roundToInt()}")
+                                            },
+                                            onDrag = { change, dragAmount ->
+                                                if (isDragging) {
+                                                    dragEnd = change.position
+                                                    Log.d(
+                                                        "dfdf2",
+                                                        "y = ${change.position.y.roundToInt()} | \uD835\uDEE5 ${change.positionChange().y.roundToInt()}"
+                                                    )
+                                                }
+                                            },
+                                            onDragEnd = {
+                                                saveDragRange(dragStart, dragEnd)
+                                                Log.d("dfdf2", "end end!!!")
+                                                expanded_square = true
+                                            }
+                                        )
+                                    }
+                            ) {
+                                selectedImageUri.value?.let { uri ->
+                                    val bitmap = uriToBitmap(context, uri)
+                                    if (bitmap != null) {
+                                        Image(
+                                            bitmap = bitmap,
+                                            contentDescription = "Selected Image",
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    } else {
+                                        Text(
+                                            text = "사진을 불러오세요.",
+                                            modifier = Modifier
+                                                .clickable {
+                                                    getContent.launch("image/*")
+                                                }
+                                        )
+                                    }
+                                }
+                                Canvas(modifier = Modifier.fillMaxSize()) {
+                                    drawIntoCanvas {
+                                        it.drawRect(
+                                            left = dragStart.x,
+                                            top = dragStart.y,
+                                            right = dragEnd.x,
+                                            bottom = dragEnd.y,
+                                            paint = Paint().apply { color = Color(0xFF, 0x57, 0xC1, 0x14) }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                Screen.Second ->
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(data) { text ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = text,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(8.dp),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+            }
         }
+
+
     }
 }
 
 fun uriToBitmap(context: Context, uri: Uri): ImageBitmap? {
     return try {
         val inputStream = context.contentResolver.openInputStream(uri)
-        val bitmap = BitmapFactory.decodeStream(inputStream)
-        bitmap.asImageBitmap()
+        val options = BitmapFactory.Options()
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888
+        options.inSampleSize = 2 // 세로로 불러올 때 이미지 크기를 2배로 줄입니다.
+        val bitmap = BitmapFactory.decodeStream(inputStream, null, options)
+        bitmap?.asImageBitmap()
     } catch (e: Exception) {
         e.printStackTrace()
         null
@@ -248,4 +337,9 @@ fun saveImage(context: Context, bitmap: ImageBitmap) {
 
 fun saveDragRange(start: Offset, end: Offset) {
     Log.d("dfdf2", start.toString() + " / " + end.toString()  )
+}
+
+enum class Screen {
+    First,
+    Second
 }

@@ -30,7 +30,7 @@ class MyWebSocketService : Service() {
                 val response = watchService.getWatchList("9999999")
                 if (response.status == 200) {
                     val watchList = response.data.watchList
-                    Log.d("dfdf", watchList.toString())
+//                    Log.d("dfdf", watchList.toString())
                 } else {
 
                 }
@@ -44,6 +44,12 @@ class MyWebSocketService : Service() {
             client.waitForConnection()
             Log.d("dfdf", "끝")
             client.subscribe("/queue/sensor/9999999") {
+                Log.d("dfdf", it.toString())
+            }
+            client.subscribe("/queue/sensor/2") {
+                Log.d("dfdf", it.toString())
+            }
+            client.subscribe("/queue/sensor/3") {
                 Log.d("dfdf", it.toString())
             }
         }

@@ -1,16 +1,23 @@
 package com.example.asan_service
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -24,6 +31,9 @@ fun MainScreen(navController : NavController) {
     var SoundisOn by remember { mutableStateOf(false) }
     var VibrateisOn by remember { mutableStateOf(false) }
     var PopUpisOn by remember { mutableStateOf(false) }
+
+    var secret_box by remember { mutableStateOf(false) }
+    var text by remember { mutableStateOf("") }
 
     NavigationDrawer(
         drawerContent = {
@@ -46,7 +56,7 @@ fun MainScreen(navController : NavController) {
 
             Row(
                 modifier = Modifier
-                    .background(Color.Blue)
+                    .background(Color(0x04, 0x61, 0x66))
                     .fillMaxWidth()
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -92,7 +102,7 @@ fun MainScreen(navController : NavController) {
             }
             Row(
                 modifier = Modifier
-                    .background(Color.Blue)
+                    .background(Color(0x04, 0x61, 0x66))
                     .fillMaxWidth()
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -138,7 +148,7 @@ fun MainScreen(navController : NavController) {
             }
             Row(
                 modifier = Modifier
-                    .background(Color.Blue)
+                    .background(Color(0x04, 0x61, 0x66))
                     .fillMaxWidth()
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -201,26 +211,7 @@ fun MainScreen(navController : NavController) {
             }
             Row(
                 modifier = Modifier
-                    .background(Color.Blue)
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "도면 설정",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    modifier = Modifier
-                        .clickable {
-                            navController.navigate("BackgroundSettingScreen")
-                        }
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .background(Color.Blue)
+                    .background(Color(0x04, 0x61, 0x66))
                     .fillMaxWidth()
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -244,13 +235,22 @@ fun MainScreen(navController : NavController) {
             topBar = {
                 CenterAlignedTopAppBar(
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        containerColor = Color(0x04, 0x61, 0x66),
                         titleContentColor = MaterialTheme.colorScheme.primary
                     ),
                     title = {
-                        Text(
-                            "logo"
-                        )
+                        IconButton(
+                            onClick = {
+                                secret_box = true
+                            },
+                            modifier = Modifier.padding(8.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.amc_ke1_white),
+                                modifier = Modifier.size(50.dp),
+                                contentDescription = "Show First Screen"
+                            )
+                        }
                     },
                     navigationIcon = {
                         IconButton(onClick = {
@@ -262,13 +262,56 @@ fun MainScreen(navController : NavController) {
                         }) {
                             Icon(
                                 imageVector = Icons.Filled.Menu,
-                                contentDescription = null
+                                contentDescription = null,
+                                tint = Color.White
                             )
                         }
                     }
                 )
             }
         ) {
+
+            if (secret_box) {
+                AlertDialog(
+                    onDismissRequest = {
+                        secret_box = false
+                    },
+                    title = { Text("비밀 번호를 입력해주세요.", fontSize = 16.sp) },
+                    text = {
+                        BasicTextField(
+                            value = text,
+                            onValueChange = { text = it },
+                            modifier = Modifier.padding(16.dp),
+                            keyboardOptions = KeyboardOptions(
+                                imeAction = ImeAction.Done
+                            )
+                        )
+                    },
+                    confirmButton = {
+                        Button(onClick = {
+                            if(text == "1234") {
+                                navController.navigate("BackgroundSettingScreen")
+                            } else {
+                                text = ""
+                            }
+                            secret_box = false
+                        }
+                        ) {
+                            Text("입력")
+                        }
+                    },
+                    dismissButton = {
+                        Button(onClick = {
+                            text = ""
+                            secret_box = false
+                        }
+                        ) {
+                            Text("취소")
+                        }
+                    }
+                )
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -284,9 +327,8 @@ fun MainScreen(navController : NavController) {
 
                     Box(
                         modifier = Modifier
-                            .weight(5f)
                             .fillMaxWidth()
-                            .background(color = Color.Blue)
+                            .background(color = Color(0xFF, 0x57, 0xC1, 0x14))
                     ) {
 
 
@@ -294,7 +336,6 @@ fun MainScreen(navController : NavController) {
 
                     Box(
                         modifier = Modifier
-                            .weight(1f)
                             .fillMaxWidth(),
                         contentAlignment = Alignment.BottomCenter
                     ) {

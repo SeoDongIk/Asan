@@ -26,12 +26,13 @@ fun AlaramScreen(navController : NavController) {
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    containerColor = Color(0x04, 0x61, 0x66),
                     titleContentColor = MaterialTheme.colorScheme.primary
                 ),
                 title = {
                     Text(
-                        "발생 알람 목록"
+                        "발생 알람 목록",
+                        color = Color.White
                     )
                 },
                 navigationIcon = {
@@ -40,7 +41,8 @@ fun AlaramScreen(navController : NavController) {
                     }) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = Color.White
                         )
                     }
                 }
@@ -73,14 +75,16 @@ fun MultiRowColumnTable(data: List<List<String>>) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
                 row.forEach { text ->
                     Text(
                         text = text,
                         modifier = Modifier
                             .weight(1f)
-                            .padding(8.dp)
+                            .padding(8.dp),
+                        textAlign = TextAlign.Center
                     )
                 }
             }

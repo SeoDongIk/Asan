@@ -19,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import okhttp3.internal.wait
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,12 +28,13 @@ fun ConnectScreen(navController : NavController) {
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    containerColor = Color(0x04, 0x61, 0x66),
                     titleContentColor = MaterialTheme.colorScheme.primary
                 ),
                 title = {
                     Text(
-                        "연결 상태"
+                        "연결 상태",
+                        color = Color.White
                     )
                 },
                 navigationIcon = {
@@ -41,7 +43,8 @@ fun ConnectScreen(navController : NavController) {
                     }) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = Color.White
                         )
                     }
                 }
@@ -51,33 +54,33 @@ fun ConnectScreen(navController : NavController) {
         val data = listOf(
             Triple(
                 Pair("첫번째 환자", "301호"),
-                Pair(painterResource(id = R.drawable.ic_launcher_background), "80"),
-                Pair(painterResource(id = R.drawable.ic_launcher_background), "Text 3")
+                Pair(painterResource(id = R.drawable.heart), "80"),
+                Pair(painterResource(id = R.drawable.notconnect), "Text 3")
             ),
             Triple(
                 Pair("두번째 환자", "302호"),
-                Pair(painterResource(id = R.drawable.ic_launcher_background), "80"),
-                Pair(painterResource(id = R.drawable.ic_launcher_background), "Text 6")
+                Pair(painterResource(id = R.drawable.heart), "80"),
+                Pair(painterResource(id = R.drawable.notconnect), "Text 6")
             ),
             Triple(
                 Pair("세번째 환자", "303호"),
-                Pair(painterResource(id = R.drawable.ic_launcher_background), "80"),
-                Pair(painterResource(id = R.drawable.ic_launcher_background), "Text 3")
+                Pair(painterResource(id = R.drawable.heart), "80"),
+                Pair(painterResource(id = R.drawable.connect), "Text 3")
             ),
             Triple(
                 Pair("네번째 환자", "304호"),
-                Pair(painterResource(id = R.drawable.ic_launcher_background), "80"),
-                Pair(painterResource(id = R.drawable.ic_launcher_background), "Text 3")
+                Pair(painterResource(id = R.drawable.heart), "80"),
+                Pair(painterResource(id = R.drawable.connect), "Text 3")
             ),
             Triple(
                 Pair("다섯번째 환자", "305호"),
-                Pair(painterResource(id = R.drawable.ic_launcher_background), "80"),
-                Pair(painterResource(id = R.drawable.ic_launcher_background), "Text 3")
+                Pair(painterResource(id = R.drawable.heart), "80"),
+                Pair(painterResource(id = R.drawable.connect), "Text 3")
             ),
             Triple(
                 Pair("여섯번째 환자", "306호"),
-                Pair(painterResource(id = R.drawable.ic_launcher_background), "80"),
-                Pair(painterResource(id = R.drawable.ic_launcher_background), "Text 3")
+                Pair(painterResource(id = R.drawable.heart), "80"),
+                Pair(painterResource(id = R.drawable.connect), "Text 3")
             ),
         )
         MultiRowColumnTable(data = data)
@@ -107,7 +110,8 @@ fun MultiRowColumnTable(data: List<Triple<Pair<String, String>, Pair<Painter, St
                 // 두 번째 열: 아이콘 1개와 텍스트 1개 가로 배치
                 Row(
                     modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     Image(
                         painter = row.second.first,
