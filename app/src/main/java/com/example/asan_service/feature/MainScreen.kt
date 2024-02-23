@@ -2,6 +2,7 @@ package com.example.asan_service
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,7 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -276,12 +279,26 @@ fun MainScreen(navController : NavController) {
                     onDismissRequest = {
                         secret_box = false
                     },
-                    title = { Text("비밀 번호를 입력해주세요.", fontSize = 16.sp) },
+                    title = {
+                        Text("비밀 번호를 입력해주세요.",
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center
+                        )
+                            },
                     text = {
                         BasicTextField(
                             value = text,
-                            onValueChange = { text = it },
-                            modifier = Modifier.padding(16.dp),
+                            onValueChange = { newText ->
+                                text = newText
+                            },
+                            modifier = Modifier
+                                .border(
+                                    width = 1.dp,
+                                    color = Color(0x04, 0x61, 0x66),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .fillMaxWidth()
+                                .padding(16.dp),
                             keyboardOptions = KeyboardOptions(
                                 imeAction = ImeAction.Done
                             )

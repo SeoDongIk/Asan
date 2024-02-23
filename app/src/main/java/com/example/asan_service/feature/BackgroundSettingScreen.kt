@@ -288,23 +288,66 @@ fun BackgroundSettingScreen(navController : NavController) {
                         }
                     }
                 Screen.Second ->
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(4.dp)
+                    ) {
                         items(data) { text ->
-                            Row(
+                            Column(
                                 modifier = Modifier
+                                    .border(BorderStroke(1.dp, Color(0x04, 0x61, 0x66)), shape = RoundedCornerShape(8.dp))
                                     .fillMaxWidth()
-                                    .padding(8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
+                                    .padding(4.dp),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text(
-                                    text = text,
+                                Row(
                                     modifier = Modifier
-                                        .weight(1f)
-                                        .padding(8.dp),
-                                    textAlign = TextAlign.Center
-                                )
+                                        .fillMaxWidth()
+                                        .padding(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Start
+                                ) {
+                                    Text(
+                                        text = text,
+                                        modifier = Modifier
+                                            .padding(4.dp),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Start
+                                ) {
+                                    Text(
+                                        text = text,
+                                        modifier = Modifier
+                                            .padding(4.dp),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.End
+                                ) {
+                                    Button(
+                                        onClick = { navController.navigate("WatchSettingScreen") },
+                                        modifier = Modifier
+                                            .padding(4.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0x04, 0x61, 0x66)),
+                                    ) {
+                                        Text(text = "세부 설정")
+                                    }
+                                }
                             }
+                            Spacer(modifier = Modifier.size(4.dp))
                         }
                     }
             }
