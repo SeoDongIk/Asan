@@ -27,12 +27,13 @@ fun StatisticScreen(navController : NavController) {
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    containerColor = Color(0x04, 0x61, 0x66),
                     titleContentColor = MaterialTheme.colorScheme.primary
                 ),
                 title = {
                     Text(
-                        "통계량"
+                        "통계량",
+                        color = Color.White
                     )
                 },
                 navigationIcon = {
@@ -41,7 +42,8 @@ fun StatisticScreen(navController : NavController) {
                     }) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = Color.White
                         )
                     }
                 }
@@ -67,7 +69,6 @@ fun StatisticScreen(navController : NavController) {
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .border(width = 1.dp, color = Color.Blue) // 테두리 추가
         ) {
             DropdownLayout(
                 items = items,
@@ -76,9 +77,7 @@ fun StatisticScreen(navController : NavController) {
             )
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .border(width = 1.dp, color = Color.Blue),
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -98,9 +97,8 @@ fun StatisticScreen(navController : NavController) {
 
             Surface(
                 modifier = Modifier
-                    .padding(horizontal = 16.dp)
                     .fillMaxSize(),
-                color = Color.Cyan
+                color = Color(0xFF, 0x57, 0xC1, 0x14)
             ) {
                 Column(
                     modifier = Modifier
@@ -136,30 +134,36 @@ fun DropdownLayout(
 
     Column(
         modifier = Modifier
-            .padding(horizontal = 16.dp)
     ) {
-        Row(
+        Box(
             modifier = Modifier
-                .background(Color.Blue)
+                .background(Color.LightGray)
                 .fillMaxWidth()
                 .height(56.dp)
                 .clickable { expanded = true },
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "환자 선택",
-                color = Color.White,
-                fontSize = 20.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f)
-            )
-            Icon(
-                imageVector = Icons.Default.ArrowDropDown,
-                contentDescription = "Dropdown Arrow",
-                tint = Color.White,
-                modifier = Modifier.size(48.dp)
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "환자 선택",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "Dropdown Arrow",
+                    tint = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .size(48.dp)
+                )
+            }
         }
 
         if (expanded) {
@@ -223,7 +227,7 @@ fun Graph() {
 
             drawRect(
                 color = when {
-                    barHeight >= 50 -> Color.Green
+                    barHeight >= 150 -> Color.Red
                     else -> Color.Blue
                 },
                 topLeft = Offset(x, y),
@@ -233,7 +237,7 @@ fun Graph() {
         }
     }
     Text(
-        text = "심박수: ${Random.nextInt(60, 120)}",
+        text = "심박수 ${Random.nextInt(60, 120)}",
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center
     )

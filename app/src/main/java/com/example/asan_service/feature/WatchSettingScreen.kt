@@ -1,7 +1,11 @@
 package com.example.asan_service.feature
 
+import android.graphics.Paint.Align
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -10,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,6 +50,8 @@ fun WatchSettingScreen(navController : NavController, text : String) {
             )
         }
     ) {
+        var text by remember { mutableStateOf("") }
+        var secret_box by remember { mutableStateOf(false) }
         var selectedItem by remember { mutableStateOf<Item?>(null) }
         val items = listOf(
             Item("Item 1", "Room A", "12345", "Jan 2024 - Feb 2024"),
@@ -58,12 +65,112 @@ fun WatchSettingScreen(navController : NavController, text : String) {
             Item("Item 3", "Room C", "24680", "Mar 2024 - Apr 2024"),
         )
 
+        if (secret_box) {
+            AlertDialog(
+                onDismissRequest = {
+                    secret_box = false
+                },
+                title = {
+                    Text("이름을 변경합니다",
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                },
+                text = {
+                },
+                confirmButton = {
+                    Button(onClick = {
+                        //
+                        text = ""
+                        secret_box = false
+                    },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0x04, 0x61, 0x66)),
+                    ) {
+                        Text("확인")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = {
+                        //
+                        secret_box = false
+                    },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0x04, 0x61, 0x66)),
+                        ) {
+                        Text("취소")
+                    }
+                }
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Row(
+                modifier = Modifier
+                    .background(Color(0x04, 0x61, 0x66))
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "이름 설정",
+                    color = Color.White,
+                    modifier = Modifier
+                        .padding(4.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Text(
+                    text = "변경하실 이름을 입력해주세요",
+                    modifier = Modifier
+                        .padding(4.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+            BasicTextField(
+                value = text,
+                onValueChange = { newText ->
+                    text = newText
+                },
+                modifier = Modifier
+                    .border(
+                        width = 1.dp,
+                        color = Color(0x04, 0x61, 0x66),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                keyboardOptions = KeyboardOptions(
+                    imeAction = ImeAction.Done
+                )
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start
+            ) {
+                Button(
+                onClick = { secret_box = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(4.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0x04, 0x61, 0x66)),
+            ) {
+                Text(text = "입력")
+            }
+            }
             Row(
                 modifier = Modifier
                     .background(Color(0x04, 0x61, 0x66))
@@ -150,6 +257,20 @@ fun WatchSettingScreen(navController : NavController, text : String) {
             }
             Row(
                 modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "00 : 00",
+                    modifier = Modifier
+                        .padding(4.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+            Row(
+                modifier = Modifier
                     .background(Color(0x04, 0x61, 0x66))
                     .fillMaxWidth()
                     .padding(4.dp),
@@ -211,27 +332,28 @@ fun DropdownLayout2(
 
     Column(
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .background(Color.LightGray)
                 .fillMaxWidth()
                 .height(56.dp)
                 .clickable { expanded = true },
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "장소 선택",
                 color = Color.White,
                 fontSize = 20.sp,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.align(Alignment.Center)
             )
             Icon(
                 imageVector = Icons.Default.ArrowDropDown,
                 contentDescription = "Dropdown Arrow",
                 tint = Color.White,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(48.dp)
             )
         }
 

@@ -1,6 +1,6 @@
 package com.example.asan_service.core
 
-import com.example.asan_service.data.WatchResponse
+import com.example.asan_service.parser.WatchResponse
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*

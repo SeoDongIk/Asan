@@ -312,8 +312,9 @@ fun MainScreen(navController : NavController) {
                                 text = ""
                             }
                             secret_box = false
-                        }
-                        ) {
+                        },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0x04, 0x61, 0x66)),
+                            ) {
                             Text("입력")
                         }
                     },
@@ -321,8 +322,9 @@ fun MainScreen(navController : NavController) {
                         Button(onClick = {
                             text = ""
                             secret_box = false
-                        }
-                        ) {
+                        },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0x04, 0x61, 0x66)),
+                            ) {
                             Text("취소")
                         }
                     }

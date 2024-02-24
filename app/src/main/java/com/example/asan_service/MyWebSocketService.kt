@@ -5,12 +5,18 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.room.Room
 import com.example.asan_service.core.ApiService
+import com.example.asan_service.core.AppDatabase
+import com.example.asan_service.dao.WatchItemDao
+import com.example.asan_service.entity.WatchItemEntity
 import kotlinx.coroutines.*
+import org.json.JSONObject
 import ua.naiksoftware.stomp.Stomp
 import ua.naiksoftware.stomp.StompClient
 import ua.naiksoftware.stomp.dto.StompHeader
 import ua.naiksoftware.stomp.dto.StompMessage
+import java.util.*
 
 class MyWebSocketService : Service() {
 
@@ -24,13 +30,63 @@ class MyWebSocketService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
+        // db 설정하는 부분
+
+        val db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "asanDB"
+        ).fallbackToDestructiveMigration().build()
+
         val watchService = ApiService.create()
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 val response = watchService.getWatchList("9999999")
                 if (response.status == 200) {
                     val watchList = response.data.watchList
-//                    Log.d("dfdf", watchList.toString())
+                    val watchIds = watchList.map { it.watchId }
+                    val names = watchList.map { it.name }
+                    val hosts = watchList.map { it.host }
+                    Log.d("dfdf", watchIds.toString())
+                    val client = createStompClient()
+
+                    GlobalScope.launch(Dispatchers.IO) {
+                        client.waitForConnection()
+                        Log.d("dfdf", "끝")
+
+                        val deferred = CompletableDeferred<Unit>()
+
+                        client.subscribe("/queue/sensor/9999999") { message ->
+                            Log.d("dfdf","여기" + JSONObject(message.payload).getString("data"))
+                            // 저장
+                            val watchItemEntities = watchList.map {
+                                WatchItemEntity(
+                                    watchId = it.watchId.toString(),
+                                    patientName = it.name,
+                                    patientRoom = it.host,
+                                    isConnected = it.watchId.toString() in JSONObject(message.payload).getString("data"),
+                                    measuredDate = Date().toString()
+                                )
+                            }
+                            db.watchItemDao().insertAll(watchItemEntities)
+                            Log.d("dfdf",watchItemEntities.toString())
+                            Log.d("dfdf","저장 완료")
+
+                            deferred.complete(Unit)
+                        }
+
+                        deferred.await()
+
+                        Log.d("dfdf", "이제 구독 시작")
+
+                        client.subscribe("/queue/sensor/2") {
+                            Log.d("dfdf", it.toString())
+                        }
+                        client.subscribe("/queue/sensor/3") {
+                            Log.d("dfdf", it.toString())
+                        }
+                    }
+
+
                 } else {
 
                 }
@@ -39,20 +95,7 @@ class MyWebSocketService : Service() {
             }
         }
 
-        val client = createStompClient()
-        GlobalScope.launch(Dispatchers.IO) {
-            client.waitForConnection()
-            Log.d("dfdf", "끝")
-            client.subscribe("/queue/sensor/9999999") {
-                Log.d("dfdf", it.toString())
-            }
-            client.subscribe("/queue/sensor/2") {
-                Log.d("dfdf", it.toString())
-            }
-            client.subscribe("/queue/sensor/3") {
-                Log.d("dfdf", it.toString())
-            }
-        }
+
 
         return super.onStartCommand(intent, flags, startId)
     }

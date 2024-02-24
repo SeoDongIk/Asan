@@ -1,4 +1,4 @@
-package com.example.asan_service.data
+package com.example.asan_service.parser
 
 data class WatchResponse(
     val status: Int,
