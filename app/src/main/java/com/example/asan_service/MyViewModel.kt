@@ -3,7 +3,6 @@ package com.example.asan_service
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
-import androidx.lifecycle.map
 import com.example.asan_service.dao.WatchItemDao
 import com.example.asan_service.data.User
 import kotlinx.coroutines.flow.map

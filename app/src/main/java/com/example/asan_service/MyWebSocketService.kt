@@ -9,6 +9,8 @@ import androidx.room.Room
 import com.example.asan_service.core.ApiService
 import com.example.asan_service.core.AppDatabase
 import com.example.asan_service.dao.WatchItemDao
+import com.example.asan_service.entity.AccXEntity
+import com.example.asan_service.entity.GyroZEntity
 import com.example.asan_service.entity.WatchItemEntity
 import kotlinx.coroutines.*
 import org.json.JSONObject
@@ -79,13 +81,12 @@ class MyWebSocketService : Service() {
                         Log.d("dfdf", "이제 구독 시작")
 
                         client.subscribe("/queue/sensor/2") {
-                            Log.d("dfdf", it.toString())
+                            Log.d("dfdf", JSONObject(it.payload).getJSONObject("data").toString())
                         }
                         client.subscribe("/queue/sensor/3") {
-                            Log.d("dfdf", it.toString())
+                            Log.d("dfdf", JSONObject(it.payload).getJSONObject("data").toString())
                         }
                     }
-
 
                 } else {
 
