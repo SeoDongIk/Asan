@@ -9,5 +9,5 @@ data class WatchItemEntity(
     val patientName: String,
     val patientRoom: String,
     val isConnected: Boolean,
-    val measuredDate: String
+    val measuredDate: Long
 )

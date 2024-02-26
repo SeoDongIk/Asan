@@ -1,4 +1,4 @@
-package com.example.asan_service
+package com.example.asan_service.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
@@ -7,7 +7,7 @@ import com.example.asan_service.dao.WatchItemDao
 import com.example.asan_service.data.User
 import kotlinx.coroutines.flow.map
 
-class MyViewModel(private val userDao: WatchItemDao) : ViewModel() {
+class ConnectScreenViewModel(private val userDao: WatchItemDao) : ViewModel() {
     val users: LiveData<List<User>> = userDao.getAll().map { watchItems ->
         watchItems.map { watchItem ->
             User(
@@ -19,5 +19,4 @@ class MyViewModel(private val userDao: WatchItemDao) : ViewModel() {
             )
         }
     }.asLiveData()
-
 }

@@ -1,7 +1,7 @@
 package com.example.asan_service
 
-import android.util.Log
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,7 +9,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -18,20 +17,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.room.Room
-import com.example.asan_service.core.AppDatabase
-import com.example.asan_service.core.UserRepository
-import com.example.asan_service.dao.WatchItemDao
-import com.example.asan_service.data.User
+import com.example.asan_service.viewmodel.ConnectScreenViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ConnectScreen(navController : NavController, viewModel: MyViewModel) {
-
+fun ConnectScreen(navController : NavController, viewModel: ConnectScreenViewModel) {
     val usersState by viewModel.users.observeAsState(initial = emptyList())
 
     Scaffold(
@@ -61,56 +53,27 @@ fun ConnectScreen(navController : NavController, viewModel: MyViewModel) {
             )
         }
     ) {
-        val data = usersState.map {
+        val sortedList = usersState
+        val data = sortedList.map {
             Triple(
                 Pair(it.name, it.host),
                 Pair(painterResource(id = R.drawable.heart), "80"),
-                Pair(if(it.connected) painterResource(id = R.drawable.connect) else painterResource(id = R.drawable.notconnect), it.date)
+                Triple(it.connected,if(it.connected) painterResource(id = R.drawable.connect) else painterResource(id = R.drawable.notconnect), ((System.currentTimeMillis()-it.date) / (1000*60)).toString() + "분")
             )
         }
-        val data2 = listOf(
-            Triple(
-                Pair("첫번째 환자", "301호"),
-                Pair(painterResource(id = R.drawable.heart), "80"),
-                Pair(painterResource(id = R.drawable.notconnect), "Text 3")
-            ),
-            Triple(
-                Pair("두번째 환자", "302호"),
-                Pair(painterResource(id = R.drawable.heart), "80"),
-                Pair(painterResource(id = R.drawable.notconnect), "Text 6")
-            ),
-            Triple(
-                Pair("세번째 환자", "303호"),
-                Pair(painterResource(id = R.drawable.heart), "80"),
-                Pair(painterResource(id = R.drawable.connect), "Text 3")
-            ),
-            Triple(
-                Pair("네번째 환자", "304호"),
-                Pair(painterResource(id = R.drawable.heart), "80"),
-                Pair(painterResource(id = R.drawable.connect), "Text 3")
-            ),
-            Triple(
-                Pair("다섯번째 환자", "305호"),
-                Pair(painterResource(id = R.drawable.heart), "80"),
-                Pair(painterResource(id = R.drawable.connect), "Text 3")
-            ),
-            Triple(
-                Pair("여섯번째 환자", "306호"),
-                Pair(painterResource(id = R.drawable.heart), "80"),
-                Pair(painterResource(id = R.drawable.connect), "Text 3")
-            ),
-        )
+
         MultiRowColumnTable(data = data)
     }
 }
 
 
 @Composable
-fun MultiRowColumnTable(data: List<Triple<Pair<String, String>, Pair<Painter, String>, Pair<Painter, String>>>) {
+fun MultiRowColumnTable(data: List<Triple<Pair<String, String>, Pair<Painter, String>, Triple<Boolean, Painter, String>>>) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(data) { row ->
             Row(
                 modifier = Modifier
+                    .background(if (row.third.first) Color.White else Color(0xFF, 0x57, 0xC1, 0x14))
                     .fillMaxWidth()
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -145,11 +108,13 @@ fun MultiRowColumnTable(data: List<Triple<Pair<String, String>, Pair<Painter, St
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Image(
-                        painter = row.third.first,
+                        painter = row.third.second,
                         contentDescription = null,
-                        modifier = Modifier.size(40.dp)
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color.Transparent)
                     )
-                    Text(text = row.third.second)
+                    Text(text = if(row.third.first) "-" else row.third.third)
                 }
             }
         }

@@ -1,6 +1,8 @@
 package com.example.asan_service.core
 
+import android.content.Context
 import androidx.room.Database
+import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.asan_service.dao.*
 import com.example.asan_service.entity.*
@@ -13,7 +15,7 @@ import com.example.asan_service.entity.*
                      GyroZEntity::class,
                      BaroEntity::class,
                      LightEntity::class,
-                     HeartRateEntity::class], version = 2)
+                     HeartRateEntity::class], version = 3)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun watchItemDao(): WatchItemDao
     abstract fun accXDao() : AccXDao
@@ -25,4 +27,22 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun baroDao() : BaroDao
     abstract fun heartRateDao() : HeartRateDao
     abstract fun lightDao() : LightDao
+
+    companion object {
+        private var INSTANCE: AppDatabase? = null
+
+        fun getInstance(context: Context): AppDatabase {
+            return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AppDatabase::class.java,
+                    "asanDB"
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
+                INSTANCE = instance
+                instance
+            }
+        }
+    }
 }

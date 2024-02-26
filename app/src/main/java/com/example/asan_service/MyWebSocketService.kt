@@ -8,10 +8,11 @@ import androidx.core.app.NotificationCompat
 import androidx.room.Room
 import com.example.asan_service.core.ApiService
 import com.example.asan_service.core.AppDatabase
+import com.example.asan_service.dao.AccXDao
+import com.example.asan_service.dao.AccYDao
+import com.example.asan_service.dao.AccZDao
 import com.example.asan_service.dao.WatchItemDao
-import com.example.asan_service.entity.AccXEntity
-import com.example.asan_service.entity.GyroZEntity
-import com.example.asan_service.entity.WatchItemEntity
+import com.example.asan_service.entity.*
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import ua.naiksoftware.stomp.Stomp
@@ -24,20 +25,17 @@ class MyWebSocketService : Service() {
 
     private val CHANNEL_ID = "MyForegroundServiceChannel"
     private val NOTIFICATION_ID = 12345
+    private lateinit var db: AppDatabase
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+        db = AppDatabase.getInstance(applicationContext)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 
         // db 설정하는 부분
-
-        val db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, "asanDB"
-        ).fallbackToDestructiveMigration().build()
 
         val watchService = ApiService.create()
         GlobalScope.launch(Dispatchers.IO) {
@@ -45,6 +43,7 @@ class MyWebSocketService : Service() {
                 val response = watchService.getWatchList("9999999")
                 if (response.status == 200) {
                     val watchList = response.data.watchList
+                    Log.d("ntnt", response.data.watchList.toString())
                     val watchIds = watchList.map { it.watchId }
                     val names = watchList.map { it.name }
                     val hosts = watchList.map { it.host }
@@ -57,35 +56,89 @@ class MyWebSocketService : Service() {
 
                         val deferred = CompletableDeferred<Unit>()
 
+                        val watchItemEntities = watchList.map {
+                            WatchItemEntity(
+                                watchId = it.watchId.toString(),
+                                patientName = it.name,
+                                patientRoom = it.host,
+                                isConnected = false,
+                                measuredDate = System.currentTimeMillis()
+                            )
+                        }
+                        db.watchItemDao().insertAll(watchItemEntities)
+
                         client.subscribe("/queue/sensor/9999999") { message ->
                             Log.d("dfdf","여기" + JSONObject(message.payload).getString("data"))
                             // 저장
+                            Log.d("ntnt", message.toString())
+
                             val watchItemEntities = watchList.map {
                                 WatchItemEntity(
                                     watchId = it.watchId.toString(),
                                     patientName = it.name,
                                     patientRoom = it.host,
                                     isConnected = it.watchId.toString() in JSONObject(message.payload).getString("data"),
-                                    measuredDate = Date().toString()
+                                    measuredDate = System.currentTimeMillis()
                                 )
                             }
-                            db.watchItemDao().insertAll(watchItemEntities)
+                            val connectedWatchItemEntities = watchItemEntities.filter { it.isConnected }
+                            db.watchItemDao().insertAll(connectedWatchItemEntities)
+
                             Log.d("dfdf",watchItemEntities.toString())
                             Log.d("dfdf","저장 완료")
-
                             deferred.complete(Unit)
                         }
 
                         deferred.await()
 
-                        Log.d("dfdf", "이제 구독 시작")
+                        val destinationList = watchIds.toString().map {
+                            "/queue/sensor/$it"
+                        }
 
-                        client.subscribe("/queue/sensor/2") {
-                            Log.d("dfdf", JSONObject(it.payload).getJSONObject("data").toString())
+                        destinationList.forEach { destination ->
+                            client.subscribe(destination) { message ->
+                                when (JSONObject(message.payload).getString("messageType")) {
+                                    "GYROSCOPE" -> {
+                                        Log.d("ntnt", JSONObject(message.payload).getJSONObject("data").getDouble("gyroX").toString())
+                                        Log.d("ntnt", "ok1")
+                                        db.gyroXDao().insertData(GyroXEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroX").toInt()))
+                                        db.gyroYDao().insertData(GyroYEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroY").toInt()))
+                                        db.gyroZDao().insertData(GyroZEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroZ").toInt()))
+
+                                        JSONObject(message.payload).getJSONObject("data").getDouble("gyroX")
+                                        JSONObject(message.payload).getJSONObject("data").getDouble("gyroY")
+                                        JSONObject(message.payload).getJSONObject("data").getDouble("gyroZ")
+                                    }
+                                    "ACCELEROMETER" -> {
+                                        Log.d("ntnt", JSONObject(message.payload).getJSONObject("data").getDouble("accX").toString())
+                                        Log.d("ntnt", "ok2")
+                                        db.accXDao().insertData(AccXEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = (JSONObject(message.payload).getJSONObject("data").getDouble("accX")*10).toInt()))
+                                        db.accYDao().insertData(AccYEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = (JSONObject(message.payload).getJSONObject("data").getDouble("accY")*10).toInt()))
+                                        db.accZDao().insertData(AccZEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = (JSONObject(message.payload).getJSONObject("data").getDouble("accZ")*10).toInt()))
+
+                                        JSONObject(message.payload).getJSONObject("data").getDouble("accX")
+                                        JSONObject(message.payload).getJSONObject("data").getDouble("accY")
+                                        JSONObject(message.payload).getJSONObject("data").getDouble("accZ")
+                                    }
+                                    "LIGHT" -> {
+                                        Log.d("ntnt", "ok3")
+                                        JSONObject(message.payload).getJSONObject("data").getDouble("value")
+                                    }
+                                    "BAROMETER" -> {
+                                        Log.d("ntnt", "ok4")
+                                        JSONObject(message.payload).getJSONObject("data").getDouble("value")
+                                    }
+                                    "HEART_RATE" -> {
+                                        Log.d("ntnt", "ok5")
+                                        JSONObject(message.payload).getJSONObject("data").getDouble("value")
+                                    }
+                                    else -> {
+                                        Log.d("ntnt", "fail!!!")
+                                    }
+                                }
+                            }
                         }
-                        client.subscribe("/queue/sensor/3") {
-                            Log.d("dfdf", JSONObject(it.payload).getJSONObject("data").toString())
-                        }
+
                     }
 
                 } else {
@@ -95,9 +148,6 @@ class MyWebSocketService : Service() {
 
             }
         }
-
-
-
         return super.onStartCommand(intent, flags, startId)
     }
 
