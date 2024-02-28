@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,11 +19,25 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.asan_service.viewmodel.ScannerSettingViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WatchSettingScreen(navController : NavController, text : String) {
+fun WatchSettingScreen(navController : NavController, watchId : String, scannerSettingViewModel: ScannerSettingViewModel) {
+
+    val data by scannerSettingViewModel.users.observeAsState(initial = emptyList())
+    val nicknames by scannerSettingViewModel.nickName.observeAsState(initial = emptyList())
+    val nickname = if(!nicknames.isEmpty()) nicknames.filter {
+        it.watchId == watchId
+    }[0].name else watchId
+
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -32,7 +47,7 @@ fun WatchSettingScreen(navController : NavController, text : String) {
                 ),
                 title = {
                     Text(
-                        text,
+                        nickname,
                         color = Color.White
                     )
                 },
@@ -79,12 +94,23 @@ fun WatchSettingScreen(navController : NavController, text : String) {
                 text = {
                 },
                 confirmButton = {
-                    Button(onClick = {
-                        //
-                        text = ""
-                        secret_box = false
-                    },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0x04, 0x61, 0x66)),
+                    Button(
+                        onClick = {
+
+                            scannerSettingViewModel.changeNickName(watchId, text)
+
+
+
+                            text = ""
+                            secret_box = false
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(
+                                0x04,
+                                0x61,
+                                0x66
+                            )
+                        ),
                     ) {
                         Text("확인")
                     }

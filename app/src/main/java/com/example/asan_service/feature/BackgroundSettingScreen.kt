@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -34,13 +35,14 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+import com.example.asan_service.viewmodel.ScannerSettingViewModel
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BackgroundSettingScreen(navController : NavController) {
+fun BackgroundSettingScreen(navController : NavController, scannerSettingViewModel : ScannerSettingViewModel) {
     val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
 
@@ -214,7 +216,15 @@ fun BackgroundSettingScreen(navController : NavController) {
                 }
             }
 
-            var data: List<String> = listOf("웨어러블 1", "웨어러블 2", "웨어러블 3", "웨어러블 4", "웨어러블 5")
+            val data by scannerSettingViewModel.users.observeAsState(initial = emptyList())
+            val nicknames by scannerSettingViewModel.nickName.observeAsState(initial = emptyList())
+
+
+
+            val new_data = data.map { user ->
+                Triple(if(user.watchId in nicknames.map { it.watchId }) nicknames.filter { it.watchId == user.watchId }[0].name else user.watchId
+                    ,user.modelName, user.watchId )
+            }
 
             when(screenToShow) {
                 Screen.First ->
@@ -293,10 +303,13 @@ fun BackgroundSettingScreen(navController : NavController) {
                             .fillMaxSize()
                             .padding(4.dp)
                     ) {
-                        items(data) { text ->
+                        items(new_data) { it ->
                             Column(
                                 modifier = Modifier
-                                    .border(BorderStroke(1.dp, Color(0x04, 0x61, 0x66)), shape = RoundedCornerShape(8.dp))
+                                    .border(
+                                        BorderStroke(1.dp, Color(0x04, 0x61, 0x66)),
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
                                     .fillMaxWidth()
                                     .padding(4.dp),
                                 verticalArrangement = Arrangement.Center,
@@ -310,7 +323,7 @@ fun BackgroundSettingScreen(navController : NavController) {
                                     horizontalArrangement = Arrangement.Start
                                 ) {
                                     Text(
-                                        text = text,
+                                        text = it.first,
                                         modifier = Modifier
                                             .padding(4.dp),
                                         textAlign = TextAlign.Center
@@ -324,7 +337,7 @@ fun BackgroundSettingScreen(navController : NavController) {
                                     horizontalArrangement = Arrangement.Start
                                 ) {
                                     Text(
-                                        text = text,
+                                        text = it.second,
                                         modifier = Modifier
                                             .padding(4.dp),
                                         textAlign = TextAlign.Center
@@ -338,7 +351,9 @@ fun BackgroundSettingScreen(navController : NavController) {
                                     horizontalArrangement = Arrangement.End
                                 ) {
                                     Button(
-                                        onClick = { navController.navigate("WatchSettingScreen") },
+                                        onClick = { navController.navigate("WatchSettingScreen/${it.third}") {
+
+                                        } },
                                         modifier = Modifier
                                             .padding(4.dp),
                                         colors = ButtonDefaults.buttonColors(containerColor = Color(0x04, 0x61, 0x66)),
@@ -349,6 +364,7 @@ fun BackgroundSettingScreen(navController : NavController) {
                             }
                             Spacer(modifier = Modifier.size(4.dp))
                         }
+
                     }
             }
         }

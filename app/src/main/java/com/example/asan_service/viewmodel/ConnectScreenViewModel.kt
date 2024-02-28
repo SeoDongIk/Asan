@@ -15,7 +15,8 @@ class ConnectScreenViewModel(private val userDao: WatchItemDao) : ViewModel() {
                 name = watchItem.patientName,
                 host = watchItem.patientRoom,
                 connected = watchItem.isConnected,
-                date = watchItem.measuredDate
+                date = watchItem.measuredDate,
+                modelName = watchItem.modelName
             )
         }
     }.asLiveData()

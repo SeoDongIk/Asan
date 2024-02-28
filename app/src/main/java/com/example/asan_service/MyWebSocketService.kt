@@ -42,17 +42,13 @@ class MyWebSocketService : Service() {
             try {
                 val response = watchService.getWatchList("9999999")
                 if (response.status == 200) {
+                    Log.d("dfdf2", response.toString())
                     val watchList = response.data.watchList
-                    Log.d("ntnt", response.data.watchList.toString())
                     val watchIds = watchList.map { it.watchId }
-                    val names = watchList.map { it.name }
-                    val hosts = watchList.map { it.host }
-                    Log.d("dfdf", watchIds.toString())
                     val client = createStompClient()
 
                     GlobalScope.launch(Dispatchers.IO) {
                         client.waitForConnection()
-                        Log.d("dfdf", "끝")
 
                         val deferred = CompletableDeferred<Unit>()
 
@@ -62,15 +58,15 @@ class MyWebSocketService : Service() {
                                 patientName = it.name,
                                 patientRoom = it.host,
                                 isConnected = false,
-                                measuredDate = System.currentTimeMillis()
+                                measuredDate = System.currentTimeMillis(),
+                                modelName = "Abcdefghd"
                             )
                         }
                         db.watchItemDao().insertAll(watchItemEntities)
 
                         client.subscribe("/queue/sensor/9999999") { message ->
-                            Log.d("dfdf","여기" + JSONObject(message.payload).getString("data"))
-                            // 저장
-                            Log.d("ntnt", message.toString())
+
+                            Log.d("dfdf", JSONObject(message.payload).toString())
 
                             val watchItemEntities = watchList.map {
                                 WatchItemEntity(
@@ -78,14 +74,13 @@ class MyWebSocketService : Service() {
                                     patientName = it.name,
                                     patientRoom = it.host,
                                     isConnected = it.watchId.toString() in JSONObject(message.payload).getString("data"),
-                                    measuredDate = System.currentTimeMillis()
+                                    measuredDate = System.currentTimeMillis(),
+                                    modelName = "Abcdefghd"
                                 )
                             }
                             val connectedWatchItemEntities = watchItemEntities.filter { it.isConnected }
-                            db.watchItemDao().insertAll(connectedWatchItemEntities)
 
-                            Log.d("dfdf",watchItemEntities.toString())
-                            Log.d("dfdf","저장 완료")
+                            db.watchItemDao().insertAll(connectedWatchItemEntities)
                             deferred.complete(Unit)
                         }
 

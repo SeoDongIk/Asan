@@ -16,6 +16,7 @@ import com.example.asan_service.feature.StatisticScreen
 import com.example.asan_service.feature.WatchSettingScreen
 import com.example.asan_service.ui.theme.Asan_ServiceTheme
 import com.example.asan_service.viewmodel.ConnectScreenViewModel
+import com.example.asan_service.viewmodel.ScannerSettingViewModel
 import com.example.asan_service.viewmodel.StaticalViewModel
 
 class MainActivity : ComponentActivity() {
@@ -60,10 +61,11 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("BackgroundSettingScreen") {
-                            BackgroundSettingScreen(navController)
+                            BackgroundSettingScreen(navController, ScannerSettingViewModel(db.watchItemDao(), db.nickNameDao()))
                         }
-                        composable("WatchSettingScreen") {
-                            WatchSettingScreen(navController, "dfdf")
+                        composable("WatchSettingScreen/{value}") {
+                            val value = it.arguments?.getString("value").toString()
+                            WatchSettingScreen(navController, value, ScannerSettingViewModel(db.watchItemDao(), db.nickNameDao()))
                         }
                     }
                 }

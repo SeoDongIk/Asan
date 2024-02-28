@@ -12,12 +12,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.asan_service.viewmodel.StaticalViewModel
+import java.lang.Math.sqrt
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -57,6 +59,7 @@ fun StatisticScreen(navController : NavController, viewModel: StaticalViewModel)
         val accXs by viewModel.accXs.observeAsState(initial = emptyList())
         val accYs by viewModel.accYs.observeAsState(initial = emptyList())
         val accZs by viewModel.accZs.observeAsState(initial = emptyList())
+        var accSVM = sumOfSquareRoots(accXs, accYs, accZs)
         val gyroXs by viewModel.gyroXs.observeAsState(initial = emptyList())
         val gyroYs by viewModel.gyroYs.observeAsState(initial = emptyList())
         val gyroZs by viewModel.gyroZs.observeAsState(initial = emptyList())
@@ -113,25 +116,10 @@ fun StatisticScreen(navController : NavController, viewModel: StaticalViewModel)
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    Graph(accXs,"accXs")
+                    HeartGraph(heartRates, "heartRates")
                     Spacer(modifier = Modifier.height(16.dp))
-                    Graph(accYs,"accYs")
+                    Graph(accSVM,"accSVM")
                     Spacer(modifier = Modifier.height(16.dp))
-                    Graph(accZs,"accZs")
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Graph(gyroXs, "gyroXs")
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Graph(gyroYs, "gyroYs")
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Graph(gyroZs, "gyroZs")
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Graph(lights, "lights")
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Graph(heartRates, "heartRates")
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Graph(baros, "baros")
-                    Spacer(modifier = Modifier.height(16.dp))
-
                 }
             }
 
@@ -229,6 +217,45 @@ fun DropdownLayout(
 
 @Composable
 fun Graph(data: List<Int>, name : String) {
+    val maxValue = data.maxOrNull() ?: 0
+    val minValue = data.minOrNull() ?: 0
+    val maxY = maxValue + 1
+    val minY = minValue - 1
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val graphWidth = size.width
+        val graphHeight = size.height
+
+        val xStep = graphWidth / data.size.toFloat()
+        val yStep = graphHeight / (maxY - minY).toFloat()
+
+        val path = Path()
+        path.moveTo(0f, graphHeight)
+
+        for ((index, value) in data.withIndex()) {
+            val x = index * xStep
+            val y = graphHeight - (value - minY) * yStep
+            path.lineTo(x, y)
+        }
+
+        path.lineTo(graphWidth, graphHeight)
+        path.close()
+
+        drawPath(
+            path = path,
+            color = Color.Blue,
+            style = Stroke(width = 2f)
+        )
+    }
+    Text(
+        text = name,
+        modifier = Modifier.fillMaxWidth(),
+        textAlign = TextAlign.Center
+    )
+}
+
+@Composable
+fun HeartGraph(data: List<Int>, text : String) {
     Canvas(
         modifier = Modifier
             .fillMaxWidth()
@@ -258,8 +285,19 @@ fun Graph(data: List<Int>, name : String) {
         }
     }
     Text(
-        text = name,
+        text = if (data.isNotEmpty()) "심박수 ${data.last()}" else "심박수 없음",
         modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center
     )
+}
+
+fun sumOfSquareRoots(list1: List<Int>, list2: List<Int>, list3: List<Int>): List<Int> {
+    require(list1.size == list2.size && list2.size == list3.size) { "Lists must have the same size" }
+
+    val result = mutableListOf<Int>()
+    for (i in list1.indices) {
+        val sum = sqrt(list1[i].toDouble() * list1[i] + list2[i].toDouble() * list2[i] + list3[i].toDouble() * list3[i]).toInt()
+        result.add(sum)
+    }
+    return result
 }
