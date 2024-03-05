@@ -1,42 +1,47 @@
 package com.example.asan_service
 
+import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.asan_service.viewmodel.ImageViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(navController : NavController) {
+fun MainScreen(navController: NavController, viewModel: ImageViewModel) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     var SoundisOn by remember { mutableStateOf(false) }
     var VibrateisOn by remember { mutableStateOf(false) }
     var PopUpisOn by remember { mutableStateOf(false) }
-
+    val imageList by viewModel.imageList.observeAsState()
     var secret_box by remember { mutableStateOf(false) }
     var text by remember { mutableStateOf("") }
+
+    viewModel.getImageList()
 
     NavigationDrawer(
         drawerContent = {
@@ -231,6 +236,60 @@ fun MainScreen(navController : NavController) {
                         .padding(start = 8.dp)
                 )
             }
+            Row(
+                modifier = Modifier
+                    .background(Color.Gray)
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "위치 설정",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp)
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .background(Color(0x04, 0x61, 0x66))
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "도면 설정",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    modifier = Modifier
+                        .clickable {
+                            navController.navigate("BackgroundSettingScreen")
+                        }
+                        .weight(1f)
+                        .padding(start = 8.dp)
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .background(Color(0x04, 0x61, 0x66))
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "스캐너 설정",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    modifier = Modifier
+                        .clickable {
+                            navController.navigate("ScannerSettingScreen")
+                        }
+                        .weight(1f)
+                        .padding(start = 8.dp)
+                )
+            }
         },
         drawerState = drawerState
     ) {
@@ -331,53 +390,117 @@ fun MainScreen(navController : NavController) {
                 )
             }
 
+            ImageListDisplay(imageList = imageList ,navController =navController )
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+
             ) {
+
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(16.dp)
-                ) {
-                    //
-                    // 이미지는 url 형태로 전달받게 하는 것이 좋을 것 같다.
-                    //
 
+                ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(color = Color(0xFF, 0x57, 0xC1, 0x14))
                     ) {
 
-
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            contentAlignment = Alignment.BottomCenter
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                Button(
+                                    onClick = { navController.navigate("AlarmScreen") },
+                                    modifier = Modifier
+                                        .padding(horizontal = 8.dp)
+                                        .weight(1f)
+                                ) {
+                                    Text(text = "발생 알람")
+                                }
+                                Button(
+                                    onClick = { navController.navigate("ConnectScreen") },
+                                    modifier = Modifier
+                                        .padding(horizontal = 8.dp)
+                                        .weight(1f)
+                                ) {
+                                    Text(text = "연결 상태")
+                                }
+                            }
+                        }
                     }
+                }
+            }
 
-                    Box(
+            Spacer(modifier = Modifier.size(8.dp))
+                }
+            }
+
+
+
+}
+
+
+@Composable
+fun ImageListDisplay(imageList: ImageDataList?, navController: NavController) {
+    LazyColumn {
+        imageList?.imageIds?.forEachIndexed { index, imageId ->
+            item {
+                Spacer(modifier = Modifier.size(4.dp))
+                Column(
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                        .border(BorderStroke(1.dp, Color(0x04, 0x61, 0x66)), shape = RoundedCornerShape(8.dp))
+                        .padding(4.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        contentAlignment = Alignment.BottomCenter
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                        Text(
+                            text = "도면 id : $imageId",
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        val imageName = imageList.imageNames.getOrNull(index) ?: "Unknown"
+                        Text(
+                            text = "도면 이름 : $imageName",
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        val imageName = imageList.imageNames.getOrNull(index) ?: "Unknown"
+                        Button(
+                            onClick = { navController.navigate("MoniteringScreen/$imageId?imageName=$imageName") },
+                            modifier = Modifier.padding(4.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0x04, 0x61, 0x66)),
                         ) {
-                            Button(
-                                onClick = { navController.navigate("AlarmScreen") },
-                                modifier = Modifier
-                                    .padding(horizontal = 8.dp)
-                                    .weight(1f)
-                            ) {
-                                Text(text = "발생 알람")
-                            }
-                            Button(
-                                onClick = { navController.navigate("ConnectScreen") },
-                                modifier = Modifier
-                                    .padding(horizontal = 8.dp)
-                                    .weight(1f)
-                            ) {
-                                Text(text = "연결 상태")
-                            }
+                            Text(text = "모니터링")
                         }
                     }
                 }
@@ -386,47 +509,3 @@ fun MainScreen(navController : NavController) {
     }
 }
 
-@Composable
-fun BoxWithTextAndButtons(text: String) {
-    var isOn by remember { mutableStateOf(false) }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .height(50.dp)
-            .background(Color.Blue)
-            .clickable {
-                isOn = !isOn
-            },
-        contentAlignment = Alignment.CenterStart
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = text,
-                modifier = Modifier.padding(start = 16.dp)
-            )
-            Spacer(modifier = Modifier.width(150.dp))
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(color = if (isOn) Color.White else Color.Gray, shape = RoundedCornerShape(8.dp))
-                    .clickable {
-                        isOn = !isOn
-                    }
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(color = if (isOn) Color.Gray else Color.White, shape = RoundedCornerShape(8.dp))
-                    .clickable {
-                        isOn = !isOn
-                    }
-            )
-        }
-    }
-}
