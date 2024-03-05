@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class HeartRateEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val watchId : String,
-    val value : Int
+    val value : Int,
+    val timeStamp : String
 )

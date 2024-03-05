@@ -246,7 +246,6 @@ fun BackgroundSettingScreen(navController : NavController, scannerSettingViewMod
                                             onDragStart = { startOffset ->
                                                 dragStart = startOffset
                                                 isDragging = true
-                                                Log.d("dfdf2", "y = ${startOffset.y.roundToInt()}")
                                             },
                                             onDrag = { change, dragAmount ->
                                                 if (isDragging) {
@@ -259,7 +258,6 @@ fun BackgroundSettingScreen(navController : NavController, scannerSettingViewMod
                                             },
                                             onDragEnd = {
                                                 saveDragRange(dragStart, dragEnd)
-                                                Log.d("dfdf2", "end end!!!")
                                                 expanded_square = true
                                             }
                                         )
@@ -395,7 +393,6 @@ fun saveImage(context: Context, bitmap: ImageBitmap) {
 }
 
 fun saveDragRange(start: Offset, end: Offset) {
-    Log.d("dfdf2", start.toString() + " / " + end.toString()  )
 }
 
 enum class Screen {

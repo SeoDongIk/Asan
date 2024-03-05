@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface HeartRateDao {
-    @Query("SELECT * FROM heartrateentity WHERE watchId = :watchId ORDER BY id DESC LIMIT 1000")
+    @Query("SELECT * FROM heartrateentity WHERE watchId = :watchId ORDER BY id DESC LIMIT 120")
     fun getOldestData(watchId: String): Flow<List<HeartRateEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

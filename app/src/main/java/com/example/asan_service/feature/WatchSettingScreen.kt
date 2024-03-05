@@ -1,6 +1,7 @@
 package com.example.asan_service.feature
 
 import android.graphics.Paint.Align
+import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,10 +34,19 @@ fun WatchSettingScreen(navController : NavController, watchId : String, scannerS
 
     val data by scannerSettingViewModel.users.observeAsState(initial = emptyList())
     val nicknames by scannerSettingViewModel.nickName.observeAsState(initial = emptyList())
-    val nickname = if(!nicknames.isEmpty()) nicknames.filter {
-        it.watchId == watchId
-    }[0].name else watchId
 
+    var nickname = if(nicknames.isNotEmpty()) {
+        val test = nicknames.filter {
+            it.watchId == watchId
+        }
+        if(test.isEmpty()) {
+            watchId
+        } else {
+            test.get(0).name
+        }
+    } else {
+        watchId
+    }
 
     Scaffold(
         topBar = {

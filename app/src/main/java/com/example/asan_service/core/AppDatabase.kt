@@ -16,7 +16,7 @@ import com.example.asan_service.entity.*
                      BaroEntity::class,
                      LightEntity::class,
                      HeartRateEntity::class,
-                     NickNameEntity::class], version = 5)
+                     NickNameEntity::class], version = 11)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun watchItemDao(): WatchItemDao
     abstract fun accXDao() : AccXDao
