@@ -68,10 +68,11 @@ dependencies {
     implementation "com.squareup.okhttp3:logging-interceptor:4.9.1"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0"
     implementation 'androidx.lifecycle:lifecycle-livedata-core:2.4.1'
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.4.1"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.2.0"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1"
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+
 
     // stomp
     implementation 'com.github.NaikSoftware:StompProtocolAndroid:1.6.6'
@@ -81,11 +82,19 @@ dependencies {
     //
     implementation "androidx.room:room-runtime:2.4.1"
     kapt "androidx.room:room-compiler:2.4.1"
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
 
     //
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.4.1"
+    implementation("io.coil-kt:coil-compose:2.1.0")
+
     implementation "androidx.room:room-ktx:2.4.1"
     implementation 'androidx.compose.runtime:runtime-livedata:1.0.5'
+    implementation 'com.google.android.gms:play-services-location:18.0.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.0'
+    implementation("com.google.accompanist:accompanist-coil:0.12.0")
+
+
+
 }
 
 kapt {
