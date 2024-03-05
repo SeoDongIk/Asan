@@ -1,5 +1,6 @@
 package com.example.asan_service.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 import com.example.asan_service.entity.WatchItemEntity
 import kotlinx.coroutines.flow.Flow
@@ -8,6 +9,10 @@ import kotlinx.coroutines.flow.Flow
 interface WatchItemDao {
     @Query("SELECT * FROM watch_item_entities")
     fun getAll(): Flow<List<WatchItemEntity>>
+
+    @Query("SELECT * FROM watch_item_entities ")
+    fun getAllConnected(): LiveData<List<WatchItemEntity>>
+
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(watchItems: List<WatchItemEntity>)
