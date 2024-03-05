@@ -34,28 +34,29 @@ class MyWebSocketService : Service() {
         super.onCreate()
         createNotificationChannel()
         db = AppDatabase.getInstance(applicationContext)
+
+        GlobalScope.launch(Dispatchers.IO) {
+//            db.accXDao().deleteAllData()
+//            db.accYDao().deleteAllData()
+//            db.accZDao().deleteAllData()
+//            db.heartRateDao().deleteAllData()
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
-        // db 설정하는 부분
-
+        Log.d("service2", "서비스 시작")
         val watchService = ApiService.create()
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 val response = watchService.getWatchList("9999999")
                 if (response.status == 200) {
                     val watchList = response.data.watchList
-                    Log.d("ntnt", response.data.watchList.toString())
                     val watchIds = watchList.map { it.watchId }
-                    val names = watchList.map { it.name }
-                    val hosts = watchList.map { it.host }
-                    Log.d("dfdf", watchIds.toString())
                     val client = createStompClient()
-
+                    Log.d("service2", "0-1차 연결 : " + response.toString())
                     GlobalScope.launch(Dispatchers.IO) {
                         client.waitForConnection()
-                        Log.d("dfdf", "끝")
+                        Log.d("service2", "0-2차 연결 : " + "소켓 연결 완료 (구독 준비 중)")
 
                         val deferred = CompletableDeferred<Unit>()
 
@@ -65,34 +66,35 @@ class MyWebSocketService : Service() {
                                 patientName = it.name,
                                 patientRoom = it.host,
                                 isConnected = false,
-                                measuredDate = System.currentTimeMillis()
+                                measuredDate = System.currentTimeMillis(),
+                                modelName = "Abcdefghd"
                             )
                         }
                         db.watchItemDao().insertAll(watchItemEntities)
 
-                        client.subscribe("/queue/sensor/9999999") { message ->
-                            Log.d("dfdf","여기" + JSONObject(message.payload).getString("data"))
-                            // 저장
-                            Log.d("ntnt", message.toString())
+                        Log.d("service2", "1차 연결 : " + "연결된 워치 구독 시작")
 
+                        client.subscribe("/queue/sensor/9999999") { message ->
+                            Log.d("service2", "1차 연결 : " + "연결된 워치 구독 중")
                             val watchItemEntities = watchList.map {
                                 WatchItemEntity(
                                     watchId = it.watchId.toString(),
                                     patientName = it.name,
                                     patientRoom = it.host,
                                     isConnected = it.watchId.toString() in JSONObject(message.payload).getString("data"),
-                                    measuredDate = System.currentTimeMillis()
+                                    measuredDate = System.currentTimeMillis(),
+                                    modelName = "Abcdefghd"
                                 )
                             }
                             val connectedWatchItemEntities = watchItemEntities.filter { it.isConnected }
                             db.watchItemDao().insertAll(connectedWatchItemEntities)
-
-                            Log.d("dfdf",watchItemEntities.toString())
-                            Log.d("dfdf","저장 완료")
+                            Log.d("service2", "1차 연결 : " + "연결된 워치 구독 완료")
                             deferred.complete(Unit)
                         }
 
                         deferred.await()
+
+                        Log.d("service2", "2차 연결 : " + "센서 데이터 구독 시작")
 
                         val destinationList = watchIds.toString().map {
                             "/queue/sensor/$it"
@@ -100,10 +102,11 @@ class MyWebSocketService : Service() {
 
                         destinationList.forEach { destination ->
                             client.subscribe(destination) { message ->
+                                Log.d("service2", message.payload)
                                 when (JSONObject(message.payload).getString("messageType")) {
                                     "GYROSCOPE" -> {
-                                        Log.d("ntnt", JSONObject(message.payload).getJSONObject("data").getDouble("gyroX").toString())
-                                        Log.d("ntnt", "ok1")
+                                        Log.d("service2", JSONObject(message.payload).getJSONObject("data").getDouble("gyroX").toString())
+                                        Log.d("service2", "ok1")
                                         db.gyroXDao().insertData(GyroXEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroX").toInt()))
                                         db.gyroYDao().insertData(GyroYEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroY").toInt()))
                                         db.gyroZDao().insertData(GyroZEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroZ").toInt()))
@@ -113,27 +116,28 @@ class MyWebSocketService : Service() {
                                         JSONObject(message.payload).getJSONObject("data").getDouble("gyroZ")
                                     }
                                     "ACCELEROMETER" -> {
-                                        Log.d("ntnt", JSONObject(message.payload).getJSONObject("data").getDouble("accX").toString())
-                                        Log.d("ntnt", "ok2")
-                                        db.accXDao().insertData(AccXEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = (JSONObject(message.payload).getJSONObject("data").getDouble("accX")*10).toInt()))
-                                        db.accYDao().insertData(AccYEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = (JSONObject(message.payload).getJSONObject("data").getDouble("accY")*10).toInt()))
-                                        db.accZDao().insertData(AccZEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = (JSONObject(message.payload).getJSONObject("data").getDouble("accZ")*10).toInt()))
+                                        Log.d("service2", JSONObject(message.payload).getJSONObject("data").getDouble("accX").toString())
+                                        Log.d("service2", "ok2")
+                                        db.accXDao().insertData(AccXEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = (JSONObject(message.payload).getJSONObject("data").getDouble("accX")).toFloat(), timeStamp = (JSONObject(message.payload).getJSONObject("data").getString("timeStamp"))))
+                                        db.accYDao().insertData(AccYEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = (JSONObject(message.payload).getJSONObject("data").getDouble("accY")).toFloat(), timeStamp = (JSONObject(message.payload).getJSONObject("data").getString("timeStamp"))))
+                                        db.accZDao().insertData(AccZEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = (JSONObject(message.payload).getJSONObject("data").getDouble("accZ")).toFloat(), timeStamp = (JSONObject(message.payload).getJSONObject("data").getString("timeStamp"))))
 
                                         JSONObject(message.payload).getJSONObject("data").getDouble("accX")
                                         JSONObject(message.payload).getJSONObject("data").getDouble("accY")
                                         JSONObject(message.payload).getJSONObject("data").getDouble("accZ")
                                     }
                                     "LIGHT" -> {
-                                        Log.d("ntnt", "ok3")
+                                        Log.d("service2", "ok3")
                                         JSONObject(message.payload).getJSONObject("data").getDouble("value")
                                     }
                                     "BAROMETER" -> {
-                                        Log.d("ntnt", "ok4")
+                                        Log.d("service2", "ok4")
                                         JSONObject(message.payload).getJSONObject("data").getDouble("value")
                                     }
                                     "HEART_RATE" -> {
-                                        Log.d("ntnt", "ok5")
-                                        JSONObject(message.payload).getJSONObject("data").getDouble("value")
+                                        Log.d("service2", "ok5")
+                                        db.heartRateDao().insertData(HeartRateEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getInt("value"), timeStamp = (JSONObject(message.payload).getJSONObject("data").getString("timeStamp"))))
+
                                     }
                                     "POSITION" -> {
                                         val dataObject = JSONObject(message.payload).getJSONObject("data")
@@ -148,7 +152,7 @@ class MyWebSocketService : Service() {
                                         }
                                     }
                                     else -> {
-                                        Log.d("ntnt", "fail!!!")
+                                        Log.d("service2", "fail!!!")
                                     }
                                 }
                             }
@@ -160,7 +164,6 @@ class MyWebSocketService : Service() {
 
                 }
             } catch (e: Exception) {
-
             }
         }
         return super.onStartCommand(intent, flags, startId)
@@ -173,10 +176,6 @@ class MyWebSocketService : Service() {
         headers.add(StompHeader("Authorization", "9999999"))
         headers.add(StompHeader("watchId", "9999999"))
         client.connect(headers)
-
-        client.lifecycle().subscribe { state ->
-            Log.d("dfdf", state.type.toString())
-        }
 
         return client
     }

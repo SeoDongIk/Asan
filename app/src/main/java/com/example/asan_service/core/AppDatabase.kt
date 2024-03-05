@@ -15,7 +15,8 @@ import com.example.asan_service.entity.*
                      GyroZEntity::class,
                      BaroEntity::class,
                      LightEntity::class,
-                     HeartRateEntity::class], version = 3)
+                     HeartRateEntity::class,
+                     NickNameEntity::class], version = 11)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun watchItemDao(): WatchItemDao
     abstract fun accXDao() : AccXDao
@@ -27,6 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun baroDao() : BaroDao
     abstract fun heartRateDao() : HeartRateDao
     abstract fun lightDao() : LightDao
+    abstract fun nickNameDao() : NickNameDao
 
     companion object {
         private var INSTANCE: AppDatabase? = null

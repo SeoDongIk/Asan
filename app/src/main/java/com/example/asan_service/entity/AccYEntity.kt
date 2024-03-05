@@ -7,5 +7,6 @@ import androidx.room.PrimaryKey
 data class AccYEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val watchId : String,
-    val value : Int
-)
+    val value : Float,
+    val timeStamp : String
+    )
