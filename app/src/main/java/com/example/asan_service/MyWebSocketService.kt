@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.room.Room
 import com.example.asan_service.core.ApiService
 import com.example.asan_service.core.AppDatabase
@@ -13,6 +14,8 @@ import com.example.asan_service.dao.AccYDao
 import com.example.asan_service.dao.AccZDao
 import com.example.asan_service.dao.WatchItemDao
 import com.example.asan_service.entity.*
+
+import com.example.asan_service.viewmodel.MonitorViewModel
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import ua.naiksoftware.stomp.Stomp
@@ -132,6 +135,18 @@ class MyWebSocketService : Service() {
                                         Log.d("ntnt", "ok5")
                                         JSONObject(message.payload).getJSONObject("data").getDouble("value")
                                     }
+                                    "POSITION" -> {
+                                        val dataObject = JSONObject(message.payload).getJSONObject("data")
+                                        val watchId = dataObject.optString("watchId")
+                                        val position = dataObject.optString("position")
+
+                                        Intent().also { intent ->
+                                            intent.action = "com.example.asan_service.POSITION_UPDATE"
+                                            intent.putExtra("watchId",watchId)
+                                            intent.putExtra("position", position)
+                                            LocalBroadcastManager.getInstance(this@MyWebSocketService).sendBroadcast(intent)
+                                        }
+                                    }
                                     else -> {
                                         Log.d("ntnt", "fail!!!")
                                     }
@@ -152,7 +167,7 @@ class MyWebSocketService : Service() {
     }
 
     private fun createStompClient(): StompClient {
-        val client = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://210.102.178.186:8080/ws")
+        val client = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://192.168.45.151:8080/ws")
         val headers = arrayListOf<StompHeader>()
 
         headers.add(StompHeader("Authorization", "9999999"))
