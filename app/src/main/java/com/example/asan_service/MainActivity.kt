@@ -30,6 +30,7 @@ import com.example.asan_service.ui.theme.Asan_ServiceTheme
 import com.example.asan_service.viewmodel.ConnectScreenViewModel
 import com.example.asan_service.viewmodel.ImageViewModel
 import com.example.asan_service.viewmodel.MonitorViewModel
+import com.example.asan_service.viewmodel.ScannerSettingViewModel
 import com.example.asan_service.viewmodel.StaticalViewModel
 
 
@@ -117,7 +118,9 @@ class MainActivity : ComponentActivity() {
                             ScannerSettingScreen(navController,ConnectScreenViewModel(db.watchItemDao()))
                         }
                         composable("WatchSettingScreen/{watchId}") {
-                            WatchSettingScreen(navController,ImageViewModel())
+                            WatchSettingScreen(navController,ImageViewModel(),
+                                ScannerSettingViewModel(db.watchItemDao(),db.nickNameDao())
+                            )
                         }
                         composable("MoniteringScreen/{imageId}?imageName={imageName}") {
                             MoniteringScreen(navController, ImageViewModel(), MonitorViewModel())
@@ -128,6 +131,9 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+
+
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<out String>,
                                             grantResults: IntArray) {

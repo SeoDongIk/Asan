@@ -8,6 +8,7 @@ import com.example.asan_service.dao.*
 import com.example.asan_service.data.NickName
 import com.example.asan_service.data.User
 import com.example.asan_service.entity.NickNameEntity
+import com.example.asan_service.entity.WatchItemEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
@@ -45,7 +46,7 @@ class ScannerSettingViewModel(
     fun changeNickName(watchId : String, newName : String) {
 
         viewModelScope.launch {
-            nickNameDao.insert(NickNameEntity(watchId = watchId, name = newName))
+            userDao.updatePatientName(watchId = watchId, newName = newName)
         }
     }
 

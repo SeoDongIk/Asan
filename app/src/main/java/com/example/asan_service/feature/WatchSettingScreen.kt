@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.asan_service.PositionList
 import com.example.asan_service.viewmodel.ImageViewModel
+import com.example.asan_service.viewmodel.ScannerSettingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.Math.abs
@@ -33,7 +34,7 @@ import java.lang.Math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewModel) {
+fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewModel, scannerSettingViewModel: ScannerSettingViewModel) {
     var isCollecting by remember { mutableStateOf(false) } // 수집 중인지 여부를 저장하는 상태
     val watchId = navController.currentBackStackEntry?.arguments?.getString("watchId")?.toLong()
     var collectedMinutes by remember { mutableStateOf(0) } // 수집된 시간(분)
@@ -43,12 +44,9 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
     var timerActive by remember { mutableStateOf(false) }
     var timerDurationSeconds by remember { mutableStateOf(0) }
     var timerRemainingSeconds by remember { mutableStateOf(0) }
-    var selectedMinute by remember { mutableStateOf(30) } // 사용자가 선택한 분을 저장
+    var showConfirmationDialog by remember { mutableStateOf(false) }
 
     viewModel.getPositionList()
-
-
-
 
 
     Scaffold(
@@ -138,6 +136,8 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
                     if (watchId != null) {
                         viewModel.changeName(watchId,userInput,"none")
                     }
+                    scannerSettingViewModel.changeNickName(watchId.toString(), userInput)
+                    showConfirmationDialog = true
                 }, // 버튼 클릭 시 수행할 동작을 정의합니다.
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(32,178,170)
@@ -149,6 +149,28 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
             ) {
                 Text("사용자 이름 지정")
             }
+
+
+            if (showConfirmationDialog) {
+                AlertDialog(
+                    onDismissRequest = {
+                        showConfirmationDialog = false
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showConfirmationDialog = false
+                            }
+                        ) {
+                            Text("확인")
+                        }
+                    },
+                    title = { Text("변경 완료") },
+                    text = { Text("사용자 이름이 '${userInput}'(으)로 변경되었습니다.") }
+                )
+            }
+
+
             Spacer(modifier = Modifier.height(16.dp))
 
 
