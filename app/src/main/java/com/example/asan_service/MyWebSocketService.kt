@@ -170,7 +170,7 @@ class MyWebSocketService : Service() {
     }
 
     private fun createStompClient(): StompClient {
-        val client = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://210.102.178.186:8080/ws")
+        val client = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://192.168.45.151:8080/ws")
         val headers = arrayListOf<StompHeader>()
 
         headers.add(StompHeader("Authorization", "9999999"))
