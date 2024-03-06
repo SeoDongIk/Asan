@@ -2,6 +2,7 @@ package com.example.asan_service.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import com.example.asan_service.entity.NickNameEntity
 import com.example.asan_service.entity.WatchItemEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -19,4 +20,7 @@ interface WatchItemDao {
 
     @Delete
     fun delete(watchItem: WatchItemEntity)
+
+    @Query("UPDATE watch_item_entities SET patientName = :newName WHERE watchId = :watchId")
+    fun updatePatientName(watchId: String, newName: String)
 }
