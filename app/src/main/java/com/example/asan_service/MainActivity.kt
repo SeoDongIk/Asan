@@ -123,7 +123,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("MoniteringScreen/{imageId}?imageName={imageName}") {
-                            MoniteringScreen(navController, ImageViewModel(), MonitorViewModel())
+                            MoniteringScreen(navController, ImageViewModel())
                         }
 
                     }

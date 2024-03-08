@@ -469,7 +469,7 @@ fun BackgroundDetailScreen(navController : NavController,viewModel: ImageViewMod
 fun DisplayImageUrlImage(imageUrl: String) {
     val context = LocalContext.current
     val imageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
-    val fullUrl = "http://192.168.45.244:8080" + imageUrl
+    val fullUrl = "http://210.102.178.186:8080" + imageUrl
     Log.d("fullUrl",fullUrl)
     // 이미지 URL이 변경될 때마다 이미지를 다시 로드합니다.
     LaunchedEffect(fullUrl) {

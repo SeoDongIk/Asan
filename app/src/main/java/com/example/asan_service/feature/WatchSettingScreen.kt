@@ -392,13 +392,6 @@ fun TimePicker(onMinuteSelected: (Int) -> Unit) {
     var selectedMinute by remember { mutableStateOf(0) }
 
     Column {
-
-//        Text(
-//            text = "선택된 분: $selectedMinute",
-//            modifier = Modifier.padding(16.dp),
-//            fontSize = 20.sp
-//        )
-
         TimePickerColumn(
             range = 0..59, // This defines the range of minutes that can be selected
             label = "분", // Label for the picker

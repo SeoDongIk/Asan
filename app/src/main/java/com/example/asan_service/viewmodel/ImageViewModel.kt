@@ -67,7 +67,7 @@ class ImageViewModel() : ViewModel() {
 
 
     private val retrofit = Retrofit.Builder()
-        .baseUrl("http://192.168.45.151:8080/")
+        .baseUrl("http://210.102.178.186:8080/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
 
