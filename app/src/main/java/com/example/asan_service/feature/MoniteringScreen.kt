@@ -47,12 +47,11 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel,monitorViewModel: MonitorViewModel) {
+fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel) {
     val context = LocalContext.current
     var dragStart by remember { mutableStateOf(Offset.Zero) }
     var dragEnd by remember { mutableStateOf(Offset.Zero) }
     var isDragging by remember { mutableStateOf(false) }
-    val matchingPosition = remember { mutableStateOf<DragData?>(null) }
     val dragDataList = remember { mutableStateListOf<DragData>() }
     val imageId = navController.currentBackStackEntry?.arguments?.getString("imageId")?.toLongOrNull()
     val imageName = navController.currentBackStackEntry?.arguments?.getString("imageName")
@@ -297,7 +296,7 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel,mon
 fun DisplayImageUrlImage(imageUrl: String) {
     val context = LocalContext.current
     val imageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
-    val fullUrl = "http://192.168.45.244:8080" + imageUrl
+    val fullUrl = "http://210.102.178.186:8080" + imageUrl
     Log.d("fullUrl",fullUrl)
     // 이미지 URL이 변경될 때마다 이미지를 다시 로드합니다.
     LaunchedEffect(fullUrl) {
