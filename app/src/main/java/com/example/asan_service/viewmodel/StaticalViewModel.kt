@@ -34,7 +34,7 @@ class StaticalViewModel(
         }
     }.asLiveData()
 
-    var accXs : LiveData<List<Pair<Float, Float>>> = MutableLiveData(emptyList())
+    var accXs : LiveData<List<Pair<Long, Float>>> = MutableLiveData(emptyList())
     var accYs : LiveData<List<Pair<Float, Float>>> = MutableLiveData(emptyList())
     var accZs : LiveData<List<Pair<Float, Float>>> = MutableLiveData(emptyList())
     var gyroXs : LiveData<List<Int>> = MutableLiveData(emptyList())
@@ -42,10 +42,10 @@ class StaticalViewModel(
     var gyroZs : LiveData<List<Int>> = MutableLiveData(emptyList())
     var baros : LiveData<List<Int>> = MutableLiveData(emptyList())
     var lights : LiveData<List<Int>> = MutableLiveData(emptyList())
-    var heartRates : LiveData<List<Pair<Float, Float>>> = MutableLiveData(emptyList())
+    var heartRates : LiveData<List<Pair<Long, Float>>> = MutableLiveData(emptyList())
 
     fun changeValue(newValue: String) {
-        accXs = accXDao.getOldestData(newValue).map { it.map { Pair(it.timeStamp.toFloat(), it.value.toFloat()) } }.asLiveData()
+        accXs = accXDao.getOldestData(newValue).map { it.map { Pair(it.timeStamp.toLong(), it.value.toFloat()) } }.asLiveData()
         accYs = accYDao.getOldestData(newValue).map { it.map { Pair(it.timeStamp.toFloat(), it.value.toFloat()) } } .asLiveData()
         accZs = accZDao.getOldestData(newValue).map { it.map { Pair(it.timeStamp.toFloat(), it.value.toFloat()) } } .asLiveData()
         gyroXs = gyroXDao.getOldestData(newValue).map { it.map { it.value } } .asLiveData()
@@ -53,6 +53,6 @@ class StaticalViewModel(
         gyroZs = gyroZDao.getOldestData(newValue).map { it.map { it.value } } .asLiveData()
         baros = baroDao.getOldestData(newValue).map { it.map { it.value } } .asLiveData()
         lights = lightDao.getOldestData(newValue).map { it.map { it.value } } .asLiveData()
-        heartRates = heartRateDao.getOldestData(newValue).map { it.map { Pair(it.timeStamp.toFloat(), it.value.toFloat()) }}.asLiveData()
+        heartRates = heartRateDao.getOldestData(newValue).map { it.map { Pair(it.timeStamp.toLong(), it.value.toFloat()) }}.asLiveData()
     }
 }

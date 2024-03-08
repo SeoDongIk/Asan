@@ -66,35 +66,34 @@ fun StatisticScreen(navController : NavController, viewModel: StaticalViewModel)
             )
         }
     ) {
-        val usersState by viewModel.users.observeAsState(initial = emptyList())
-        val accXs by viewModel.accXs.observeAsState(initial = emptyList())
-        val accYs by viewModel.accYs.observeAsState(initial = emptyList())
-        val accZs by viewModel.accZs.observeAsState(initial = emptyList())
-        var accSVM = sumOfSquareRoots(accXs.map { it.second.toInt() }, accYs.map { it.second.toInt() }, accZs.map { it.second.toInt() })
-        var accSVM_time = accXs.map { it.first }
-        val heartRates by viewModel.heartRates.observeAsState(initial = emptyList())
-
-        var selectedItem by remember { mutableStateOf<Item?>(null) }
-        val scrollState = rememberScrollState()
-
-        val items = usersState.map {
-            val currentTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.date), ZoneId.systemDefault())
-            Item(it.name, it.host, it.watchId, currentTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
-        }
-
-        Log.d("dfdf", "test : " + accSVM.toString())
-
-        val data2 = accSVM_time.zip(accSVM)
-
-        val data = listOf(
+        val dumy_data = listOf(
             Pair(0f, 20f),
             Pair(0.5f, 20f),
             Pair(1f, 20f),
             Pair(1.5f, 20f),
-            Pair(2f, 20f),
+            Pair(2.1f, 120f),
+            Pair(2.3f, 20f),
+            Pair(2.4f, 120f),
+            Pair(2.7f, 120f),
+            Pair(2.9f, 120f),
             Pair(3f, 20f),
+            Pair(3.1f, 120f),
+            Pair(3.3f, 20f),
+            Pair(3.4f, 120f),
+            Pair(3.7f, 70f),
+            Pair(3.9f, 100f),
             Pair(4f, 20f),
+            Pair(4.1f, 120f),
+            Pair(4.3f, 20f),
+            Pair(4.4f, 40f),
+            Pair(4.7f, 120f),
+            Pair(4.9f, 50f),
             Pair(5f, 20f),
+            Pair(5.1f, 70f),
+            Pair(5.3f, 60f),
+            Pair(5.4f, 70f),
+            Pair(5.7f, 20f),
+            Pair(5.9f, 140f),
             Pair(6f, 20f),
             Pair(7f, 20f),
             Pair(8f, 20f),
@@ -198,7 +197,30 @@ fun StatisticScreen(navController : NavController, viewModel: StaticalViewModel)
             Pair(157f, 40f),
             Pair(158f, 40f),
             Pair(159f, 0f),
-            )
+        )
+
+        var selectedItem by remember { mutableStateOf<Item?>(null) }
+        val scrollState = rememberScrollState()
+
+        val usersState by viewModel.users.observeAsState(initial = emptyList())
+        val accXs by viewModel.accXs.observeAsState(initial = emptyList())
+        val accYs by viewModel.accYs.observeAsState(initial = emptyList())
+        val accZs by viewModel.accZs.observeAsState(initial = emptyList())
+        val heartRates by viewModel.heartRates.observeAsState(initial = emptyList())
+
+        var items = usersState.map {
+            val currentTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.date), ZoneId.systemDefault())
+            Item(it.name, it.host, it.watchId, currentTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
+        }
+        var accSVM = sumOfSquareRoots(accXs.map { it.second.toInt() }, accYs.map { it.second.toInt() }, accZs.map { it.second.toInt() })
+        var accSVM_time_first = if(accXs.isNotEmpty()) accXs[0].first else 0
+        var accSVM_time = accXs.map { (((accSVM_time_first -it.first).toDouble()) / 1000.0).toFloat() }
+        var accSVM_ziped = accSVM_time.zip(accSVM)
+
+        var heartRates_first = if(heartRates.isNotEmpty()) heartRates[0].first else 0
+        var heartRates_ziped = if(heartRates.isNotEmpty()) heartRates.map {
+            Pair((((heartRates_first-it.first).toDouble()) / 1000.0).toFloat(),it.second)
+        } else emptyList()
 
         Column(
             modifier = Modifier
@@ -241,14 +263,14 @@ fun StatisticScreen(navController : NavController, viewModel: StaticalViewModel)
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    TimeSeriesGraph(heartRates)
+                    TimeSeriesGraph(heartRates_ziped)
                     Text(
                         text = "HEART_RATE",
                         modifier = Modifier.align(Alignment.CenterHorizontally),
                         color = Color.Black
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-                    TimeSeriesGraph2(data2)
+                    TimeSeriesGraph2(accSVM_ziped)
                     Text(
                         text = "ACC_SVM",
                         modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -260,6 +282,343 @@ fun StatisticScreen(navController : NavController, viewModel: StaticalViewModel)
         }
     }
 }
+
+@Composable
+fun TimeSeriesGraph(data: List<Pair<Float, Float>>) {
+    val scrollState = rememberScrollState()
+    Log.d("ziped_data", "heartRates_ziped : " + data.toString())
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .horizontalScroll(scrollState)
+            .padding(16.dp)
+    ) {
+        Canvas(
+            modifier = Modifier
+                .size(500.dp, 200.dp)
+        ) {
+            val paint = Paint().apply {
+                color = Color.Black.toArgb()
+                textSize = 30f
+                textAlign = Paint.Align.CENTER
+            }
+
+            // Draw horizontal grid lines
+            val yGridStep = size.height / 5
+            for (i in 1 until 5) {
+                drawLine(
+                    start = Offset(0f, size.height - i * yGridStep),
+                    end = Offset(size.width, size.height - i * yGridStep),
+                    color = Color.LightGray,
+                    strokeWidth = 1f
+                )
+            }
+
+            // Draw vertical grid lines
+            val xGridStep = size.width / 12
+            for (i in 1 until 12) {
+                drawLine(
+                    start = Offset(i * xGridStep, 0f),
+                    end = Offset(i * xGridStep, size.height),
+                    color = Color.LightGray,
+                    strokeWidth = 1f
+                )
+            }
+
+            // Draw x-axis
+            drawLine(
+                start = Offset(0f, size.height),
+                end = Offset(size.width, size.height),
+                color = Color.Red,
+                strokeWidth = 2f
+            )
+
+            // Draw y-axis
+            drawLine(
+                start = Offset(size.width, 0f),
+                end = Offset(size.width, size.height),
+                color = Color.Red,
+                strokeWidth = 2f
+            )
+
+            // Draw x-axis labels
+            for (i in 1..12) {
+                drawIntoCanvas { canvas ->
+                    canvas.nativeCanvas.drawText(
+                        "${120 - i * 10}(s)",
+                        i * xGridStep,
+                        size.height + 35f,
+                        paint
+                    )
+                }
+            }
+
+            // Draw y-axis labels
+            for (i in 1..5) {
+                drawIntoCanvas { canvas ->
+                    canvas.nativeCanvas.drawText(
+                        "${i * 20}",
+                        size.width + 25f,
+                        size.height - i * yGridStep + 10f,
+                        paint
+                    )
+                }
+            }
+
+            // Calculate step sizes for data points
+            val xStep = size.width / 120f
+            val yStep = size.height / 100f
+
+            // Draw data points
+            data.forEachIndexed { index, pair ->
+                val x = pair.first * xStep
+                val y = pair.second * yStep
+
+                if (index == 0) {
+                    drawLine(
+                        start = Offset(size.width, size.height - y),
+                        end = Offset(size.width, size.height - y),
+                        color = Color(0x04, 0x61, 0x66),
+                        strokeWidth = 2f
+                    )
+                } else {
+                    val prevPair = data[index - 1]
+                    val prevX = prevPair.first * xStep
+                    val prevY = prevPair.second * yStep
+
+                    drawLine(
+                        start = Offset(size.width - prevX, size.height - prevY),
+                        end = Offset(size.width - x, size.height - y),
+                        color = Color(0x04, 0x61, 0x66),
+                        strokeWidth = 2f
+                    )
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Draw x-axis labels
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+            ) {
+                data.forEach { pair ->
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
+                    ) {
+                        Text(
+                            text = pair.first.toString(),
+                            modifier = Modifier.align(Alignment.Center),
+                            color = Color.Black
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Draw y-axis labels
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+            ) {
+                data.forEach { pair ->
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
+                    ) {
+                        Text(
+                            text = pair.second.toString(),
+                            modifier = Modifier.align(Alignment.Center),
+                            color = Color.Black
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TimeSeriesGraph2(data: List<Pair<Float, Float>>) {
+    val scrollState = rememberScrollState()
+    Log.d("ziped_data", "accSVM_ziped : " + data.toString())
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .horizontalScroll(scrollState)
+            .padding(16.dp)
+    ) {
+        Canvas(
+            modifier = Modifier
+                .size(500.dp, 200.dp)
+        ) {
+            val paint = Paint().apply {
+                color = Color.Black.toArgb()
+                textSize = 30f
+                textAlign = Paint.Align.CENTER
+            }
+
+            // Draw horizontal grid lines
+            val yGridStep = size.height / 5
+            for (i in 1 until 5) {
+                drawLine(
+                    start = Offset(0f, size.height - i * yGridStep),
+                    end = Offset(size.width, size.height - i * yGridStep),
+                    color = Color.LightGray,
+                    strokeWidth = 1f
+                )
+            }
+
+            // Draw vertical grid lines
+            val xGridStep = size.width / 12
+            for (i in 1 until 12) {
+                drawLine(
+                    start = Offset(i * xGridStep, 0f),
+                    end = Offset(i * xGridStep, size.height),
+                    color = Color.LightGray,
+                    strokeWidth = 1f
+                )
+            }
+
+            // Draw x-axis
+            drawLine(
+                start = Offset(0f, size.height),
+                end = Offset(size.width, size.height),
+                color = Color.Red,
+                strokeWidth = 2f
+            )
+
+            // Draw y-axis
+            drawLine(
+                start = Offset(size.width, 0f),
+                end = Offset(size.width, size.height),
+                color = Color.Red,
+                strokeWidth = 2f
+            )
+
+            // Draw x-axis labels
+            for (i in 1..12) {
+                drawIntoCanvas { canvas ->
+                    canvas.nativeCanvas.drawText(
+                        "${120 - i * 10}(s)",
+                        i * xGridStep,
+                        size.height + 35f,
+                        paint
+                    )
+                }
+            }
+
+            // Draw y-axis labels
+            for (i in 1..5) {
+                drawIntoCanvas { canvas ->
+                    canvas.nativeCanvas.drawText(
+                        "${i * 20}",
+                        size.width + 25f,
+                        size.height - i * yGridStep + 10f,
+                        paint
+                    )
+                }
+            }
+
+            // Calculate step sizes for data points
+            val xStep = size.width / 120f
+            val yStep = size.height / 100f
+
+            // Draw data points
+            data.forEachIndexed { index, pair ->
+                val x = pair.first * xStep
+                val y = pair.second * yStep
+
+                if (index == 0) {
+                    drawLine(
+                        start = Offset(size.width, size.height - y),
+                        end = Offset(size.width, size.height - y),
+                        color = Color(0x04, 0x61, 0x66),
+                        strokeWidth = 2f
+                    )
+                } else {
+                    val prevPair = data[index - 1]
+                    val prevX = prevPair.first * xStep
+                    val prevY = prevPair.second * yStep
+
+                    drawLine(
+                        start = Offset(size.width - prevX, size.height - prevY),
+                        end = Offset(size.width - x, size.height - y),
+                        color = Color(0x04, 0x61, 0x66),
+                        strokeWidth = 2f
+                    )
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Draw x-axis labels
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+            ) {
+                data.forEach { pair ->
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
+                    ) {
+                        Text(
+                            text = pair.first.toString(),
+                            modifier = Modifier.align(Alignment.Center),
+                            color = Color.Black
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Draw y-axis labels
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp)
+            ) {
+                data.forEach { pair ->
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
+                    ) {
+                        Text(
+                            text = pair.second.toString(),
+                            modifier = Modifier.align(Alignment.Center),
+                            color = Color.Black
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 data class Item(
     val name: String,
@@ -347,352 +706,6 @@ fun DropdownLayout(
             )
         }
     }
-}
-
-@Composable
-fun TimeSeriesGraph(data: List<Pair<Float, Float>>) {
-    val scrollState = rememberScrollState()
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .horizontalScroll(scrollState)
-            .padding(16.dp)
-    ) {
-        Canvas(
-            modifier = Modifier
-                .size(500.dp, 200.dp)
-        ) {
-            val paint = Paint().apply {
-                color = Color.Black.toArgb()
-                textSize = 30f
-                textAlign = Paint.Align.CENTER
-            }
-            // x축 그리기
-            drawLine(
-                start = Offset(0f, size.height),
-                end = Offset(size.width, size.height),
-                color = Color.Red,
-                strokeWidth = 2f
-            )
-
-            // y축 그리기
-            drawLine(
-                start = Offset(size.width, 0f),
-                end = Offset(size.width, size.height),
-                color = Color.Red,
-                strokeWidth = 2f
-            )
-
-            // x축 눈금 그리기
-            val xStep2 = size.width / 12
-            for (i in 1..12) {
-                drawLine(
-                    start = Offset(i * xStep2, size.height - 5),
-                    end = Offset(i * xStep2, size.height + 5),
-                    color = Color.Black,
-                    strokeWidth = 2f
-                )
-                drawIntoCanvas { canvas ->
-                    canvas.nativeCanvas.drawText(
-                        "${12-i}",
-                        i * xStep2,
-                        size.height + 35f,
-                        paint
-                    )
-                }
-            }
-
-            // y축 눈금 그리기
-            val yStep2 = size.height / 5
-            for (i in 1..5) {
-                drawLine(
-                    start = Offset(size.width-5f, size.height - i * yStep2),
-                    end = Offset(size.width+5f, size.height - i * yStep2),
-                    color = Color.Black,
-                    strokeWidth = 2f
-                )
-                drawIntoCanvas { canvas ->
-                    canvas.nativeCanvas.drawText(
-                        "${5*i}",
-                        size.width + 25f,
-                        size.height - i * yStep2 + 10f,
-                        paint
-                    )
-                }
-            }
-
-            val xStep = size.width / 120f
-            val yStep = size.height / 60f
-
-            data.forEachIndexed { index, pair ->
-                val x = pair.first * xStep
-                val y = pair.second * yStep
-
-                if (index == 0) {
-                    drawLine(
-                        start = Offset(size.width, size.height - y),
-                        end = Offset(size.width, size.height - y),
-                        color = Color(0x04, 0x61, 0x66),
-                        strokeWidth = 2f
-                    )
-                } else {
-                    val prevPair = data[index - 1]
-                    val prevX = prevPair.first * xStep
-                    val prevY = prevPair.second * yStep
-
-                    drawLine(
-                        start = Offset(size.width - prevX, size.height - prevY),
-                        end = Offset(size.width - x, size.height - y),
-                        color =Color(0x04, 0x61, 0x66),
-                        strokeWidth = 2f
-                    )
-                }
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(40.dp)
-            ) {
-                data.forEachIndexed { index, pair ->
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(40.dp)
-                    ) {
-                        Text(
-                            text = pair.first.toString(),
-                            modifier = Modifier.align(Alignment.Center),
-                            color = Color.Black
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(40.dp)
-            ) {
-                data.forEachIndexed { index, pair ->
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(40.dp)
-                    ) {
-                        Text(
-                            text = pair.second.toString(),
-                            modifier = Modifier.align(Alignment.Center),
-                            color = Color.Black
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-@Composable
-fun TimeSeriesGraph2(data: List<Pair<Float, Float>>) {
-    val scrollState = rememberScrollState()
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .horizontalScroll(scrollState)
-            .padding(16.dp)
-    ) {
-        Canvas(
-            modifier = Modifier
-                .size(500.dp, 200.dp)
-        ) {
-            val paint = Paint().apply {
-                color = androidx.compose.ui.graphics.Color.Black.toArgb()
-                textSize = 30f
-                textAlign = Paint.Align.CENTER
-            }
-            // x축 그리기
-            drawLine(
-                start = Offset(0f, size.height),
-                end = Offset(size.width, size.height),
-                color = Color.Red,
-                strokeWidth = 2f
-            )
-
-            // y축 그리기
-            drawLine(
-                start = Offset(size.width, 0f),
-                end = Offset(size.width, size.height),
-                color = Color.Red,
-                strokeWidth = 2f
-            )
-
-            // x축 눈금 그리기
-            val xStep2 = size.width / 12
-            for (i in 1..12) {
-                drawLine(
-                    start = Offset(i * xStep2, size.height - 5),
-                    end = Offset(i * xStep2, size.height + 5),
-                    color = Color.Black,
-                    strokeWidth = 2f
-                )
-                drawIntoCanvas { canvas ->
-                    canvas.nativeCanvas.drawText(
-                        "${12-i}",
-                        i * xStep2,
-                        size.height + 35f,
-                        paint
-                    )
-                }
-            }
-
-            // y축 눈금 그리기
-            val yStep2 = size.height / 5
-            for (i in 1..5) {
-                drawLine(
-                    start = Offset(size.width-5f, size.height - i * yStep2),
-                    end = Offset(size.width+5f, size.height - i * yStep2),
-                    color = Color.Black,
-                    strokeWidth = 2f
-                )
-                drawIntoCanvas { canvas ->
-                    canvas.nativeCanvas.drawText(
-                        "${i*5}",
-                        size.width + 25f,
-                        size.height - i * yStep2 + 10f,
-                        paint
-                    )
-                }
-            }
-
-            val xStep = size.width / 120f
-            val yStep = size.height / 60f
-
-            data.forEachIndexed { index, pair ->
-                val x = pair.first * xStep
-                val y = pair.second * yStep
-
-                if (index == 0) {
-                    drawLine(
-                        start = Offset(size.width, size.height - y),
-                        end = Offset(size.width, size.height - y),
-                        color = Color(0x04, 0x61, 0x66),
-                        strokeWidth = 2f
-                    )
-                } else {
-                    val prevPair = data[index - 1]
-                    val prevX = prevPair.first * xStep
-                    val prevY = prevPair.second * yStep
-
-                    drawLine(
-                        start = Offset(size.width - prevX, size.height - prevY),
-                        end = Offset(size.width - x, size.height - y),
-                        color =Color(0x04, 0x61, 0x66),
-                        strokeWidth = 2f
-                    )
-                }
-            }
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(40.dp)
-            ) {
-                data.forEachIndexed { index, pair ->
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(40.dp)
-                    ) {
-                        Text(
-                            text = pair.first.toString(),
-                            modifier = Modifier.align(Alignment.Center),
-                            color = Color.Black
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(40.dp)
-            ) {
-                data.forEachIndexed { index, pair ->
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(40.dp)
-                    ) {
-                        Text(
-                            text = pair.second.toString(),
-                            modifier = Modifier.align(Alignment.Center),
-                            color = Color.Black
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun HeartGraph(data: List<Int>, text : String) {
-    Canvas(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp)
-    ) {
-        val boxWidth = 300.dp.toPx()
-        val boxHeight = 100.dp.toPx()
-        val barSpacing = 5.dp.toPx()
-
-        val maxBarHeight = boxHeight - 2 * barSpacing
-        val barWidth = if (data.isNotEmpty()) (boxWidth - (data.size - 1) * barSpacing) / data.size else 0f
-
-        data.forEachIndexed { index, value ->
-            val x = index * (barWidth + barSpacing)
-            val barHeight = (value / 120f) * maxBarHeight
-            val y = boxHeight - barHeight
-
-            drawRect(
-                color = when {
-                    value >= 150 -> Color.Red
-                    else -> Color.Blue
-                },
-                topLeft = Offset(x, y),
-                size = androidx.compose.ui.geometry.Size(barWidth, barHeight),
-                style = Stroke(width = barWidth)
-            )
-        }
-    }
-    Text(
-        text = if (data.isNotEmpty()) "심박수 ${data.last()}" else "심박수 없음",
-        modifier = Modifier.fillMaxWidth(),
-        textAlign = TextAlign.Center
-    )
 }
 
 fun sumOfSquareRoots(list1: List<Int>, list2: List<Int>, list3: List<Int>): List<Float> {

@@ -449,7 +449,6 @@ fun MainScreen(navController: NavController, viewModel: ImageViewModel) {
 
 }
 
-
 @Composable
 fun ImageListDisplay(imageList: ImageDataList?, navController: NavController) {
     LazyColumn {

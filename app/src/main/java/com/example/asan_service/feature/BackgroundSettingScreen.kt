@@ -1,6 +1,5 @@
 package com.example.asan_service
 
-import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -81,16 +80,12 @@ fun BackgroundSettingScreen(navController : NavController,viewModel: ImageViewMo
     val imageList by viewModel.imageList.observeAsState()
     viewModel.getImageList()
 
-
     val getContent =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
             selectedImageUri.value = uri
             selectedImageUri.value?.let { uriString ->
                 viewModel.uploadImage(context, uriString)}
         }
-
-
-
 
     Scaffold(
         topBar = {
@@ -191,4 +186,12 @@ fun ImageSettingListDisplay(imageList: ImageDataList?, navController: NavControl
             }
         }
     }
+}
+
+fun saveDragRange(start: Offset, end: Offset) {
+}
+
+enum class Screen {
+    First,
+    Second
 }
