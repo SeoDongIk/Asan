@@ -49,7 +49,7 @@ import java.io.ByteArrayOutputStream
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScannerSettingScreen (navController : NavController,viewModel: ConnectScreenViewModel) {
-    val usersState by viewModel.users.observeAsState(initial = emptyList())
+    val usersState by viewModel.connectedUsers.observeAsState(initial = emptyList())
 
 
     Scaffold(
@@ -82,62 +82,68 @@ fun ScannerSettingScreen (navController : NavController,viewModel: ConnectScreen
     {
 
 
-
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(4.dp)
         ) {
-            items(usersState) { usersState ->
-                Column(
-                    modifier = Modifier
-                        .border(
-                            BorderStroke(1.dp, Color(0x04, 0x61, 0x66)),
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .fillMaxWidth()
-                        .padding(4.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // 이 곳에서 watchId를 사용하여 원하는 작업을 수행합니다.
-                    Row(
+            if (usersState.isEmpty()) {
+                item {
+                    Text(
+                        "연결된 워치가 없습니다. 연결 상태를 확인해주세요.",
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                items(usersState) { userState -> // `userState`는 리스트의 각 항목을 나타냅니다.
+                    Column(
+                        modifier = Modifier
+                            .border(
+                                BorderStroke(1.dp, Color(0x04, 0x61, 0x66)),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .fillMaxWidth()
                             .padding(4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Start
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "watch id: ${usersState.watchId}")
-                        Spacer(modifier = Modifier.width(8.dp)) // ID와 이름 사이 간격 추가
-                        Text(text = "환자 이름: ${usersState.name}")
-                    }
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Button(
-                            onClick = { navController.navigate("WatchSettingScreen/${usersState.watchId}") },
-                            modifier = Modifier.padding(4.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(
-                                    0x04,
-                                    0x61,
-                                    0x66
-                                )
-                            ),
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
                         ) {
-                            Text(text = "세부 설정")
+                            Text(text = "watch id: ${userState.watchId}")
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = "환자 이름: ${userState.name}")
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Button(
+                                onClick = { navController.navigate("WatchSettingScreen/${userState.watchId}") }, // `usersState`를 `userState`로 변경
+                                modifier = Modifier.padding(4.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0x04, 0x61, 0x66)
+                                ),
+                            ) {
+                                Text(text = "세부 설정")
+                            }
                         }
                     }
+                    Spacer(modifier = Modifier.size(4.dp))
                 }
-                Spacer(modifier = Modifier.size(4.dp))
             }
         }
     }
 }
-

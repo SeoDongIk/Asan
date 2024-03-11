@@ -1,5 +1,6 @@
 package com.example.asan_service.feature
 
+
 import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -29,13 +30,12 @@ import com.example.asan_service.viewmodel.ImageViewModel
 import com.example.asan_service.viewmodel.ScannerSettingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.lang.Math.abs
+
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewModel, scannerSettingViewModel: ScannerSettingViewModel) {
-    var isCollecting by remember { mutableStateOf(false) } // 수집 중인지 여부를 저장하는 상태
     val watchId = navController.currentBackStackEntry?.arguments?.getString("watchId")?.toLong()
     var collectedMinutes by remember { mutableStateOf(0) } // 수집된 시간(분)
     var collectedSeconds by remember { mutableStateOf(0) } // 수집된 시간(초)
@@ -45,15 +45,29 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
     var timerDurationSeconds by remember { mutableStateOf(0) }
     var timerRemainingSeconds by remember { mutableStateOf(0) }
     var showConfirmationDialog by remember { mutableStateOf(false) }
+    val endTimes by viewModel.endTimes.collectAsState()
+    var savedEndTime = endTimes[watchId]
 
     viewModel.getPositionList()
+
+
+    LaunchedEffect(watchId) {
+        watchId?.let {
+            viewModel.getCollectionStatus(it.toString())
+        }
+        Log.d("savedEndTime",savedEndTime.toString())
+    }
+
+
+
+
 
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(32,178,170),
+                    containerColor = Color(0x04, 0x61, 0x66),
                     titleContentColor = Color.White
                 ),
                 title = {
@@ -69,7 +83,7 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
                 navigationIcon = {
                     IconButton(onClick = {
                         // Make sure this navigation route is correctly handled in your NavHost
-                        navController.navigate("MainScreen")
+                        navController.navigate("ScannerSettingScreen")
                     }) {
                         Icon(
                             imageVector = Icons.Filled.ArrowBack,
@@ -93,13 +107,15 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
 
         ) {
             Row(
-                modifier = Modifier.background(Color.LightGray).fillMaxWidth(), // 텍스트의 배경색을 수평적으로 전체 영역에 적용
+                modifier = Modifier
+                    .background(Color.LightGray)
+                    .fillMaxWidth(), // 텍스트의 배경색을 수평적으로 전체 영역에 적용
                 verticalAlignment = Alignment.CenterVertically // 텍스트를 세로 중앙에 정렬
             ) {
 
                 Text(
                     text = "사용자 지정", // 텍스트 내용
-                    color = Color.Black, // 텍스트 색상
+                    color = Color(0x04, 0x61, 0x66), // 텍스트 색상
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 3.dp) // 내부 패딩
                 )
 
@@ -140,7 +156,7 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
                     showConfirmationDialog = true
                 }, // 버튼 클릭 시 수행할 동작을 정의합니다.
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(32,178,170)
+                    containerColor =  Color(0x04, 0x61, 0x66)
                 ),
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally) // 버튼을 세로 중앙에 정렬
@@ -177,7 +193,9 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
 
 
             Row(
-            modifier = Modifier.background(Color.LightGray).fillMaxWidth(), // 텍스트의 배경색을 수평적으로 전체 영역에 적용
+            modifier = Modifier
+                .background(Color.LightGray)
+                .fillMaxWidth(), // 텍스트의 배경색을 수평적으로 전체 영역에 적용
             verticalAlignment = Alignment.CenterVertically // 텍스트를 세로 중앙에 정렬
         ) {
 
@@ -200,7 +218,9 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
             Spacer(modifier = Modifier.height(16.dp)) // Dropdown and buttons spacing
 
             Row(
-                modifier = Modifier.background(Color.LightGray).fillMaxWidth(), // 텍스트의 배경색을 수평적으로 전체 영역에 적용
+                modifier = Modifier
+                    .background(Color.LightGray)
+                    .fillMaxWidth(), // 텍스트의 배경색을 수평적으로 전체 영역에 적용
                 verticalAlignment = Alignment.CenterVertically // 텍스트를 세로 중앙에 정렬
             ) {
                 Text(
@@ -214,28 +234,45 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
             var selectedMinute by remember { mutableStateOf(0) }
 
             LaunchedEffect(timerActive) {
-                if (timerActive) {
+                if (timerActive && (savedEndTime == 0L || savedEndTime == null)) {
                     timerDurationSeconds = selectedMinute // 분을 초로 변환
                     timerRemainingSeconds = timerDurationSeconds
-                    while (timerActive && timerRemainingSeconds > 0) {
-                        delay(1000) // 1초 기다림
-                        timerRemainingSeconds -= 1 // 남은 시간을 1초 감소
-                    }
-                    viewModel.deleteState(watchId.toString())
-                    timerActive = false // 타이머가 끝나면 활성 상태를 false로 설정
                 }
-            }
+                while (timerActive && timerRemainingSeconds > 0) {
+                    delay(1000) // 1초 기다림
+                    // 남은 시간이 0 초과일 때만 감소
+                    if (timerRemainingSeconds > 0) {
+                        timerRemainingSeconds -= 1
+                    } else {
+                        break // 더 이상 반복하지 않음
+                    }
+                }
+                if (watchId != null) {
+                    viewModel.deleteEndTime(watchId)
+                }
+                    timerActive = false
+                    viewModel.deleteState(watchId.toString())
+                }
 
 
+            val currentTime = System.currentTimeMillis()
 
-            if (!timerActive) {
-                TimePicker(onMinuteSelected = { minute ->
-                    selectedMinute = minute * 60
-                })
+            if (savedEndTime == null) {
+
+                    if (!timerActive) {
+                        TimePicker(onMinuteSelected = { minute ->
+                            selectedMinute = minute * 60
+                        })
+                    } else {
+                        TimerDisplay(timerRemainingSeconds)
+                    }
             } else {
-                // 타이머 UI
+                timerActive = true
+                val remainTimeMillis = savedEndTime!!.minus(currentTime)
+                timerRemainingSeconds = (remainTimeMillis / 1000).toInt()
                 TimerDisplay(timerRemainingSeconds)
             }
+
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -243,9 +280,10 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
             ) {
                 Button(
                     onClick = {
+                        val endTime = System.currentTimeMillis() + (selectedMinute * 1000)
                         selectedImageId?.let {
                             viewModel.insertState(watchId.toString(),
-                                it,selectedItem.toString() )
+                                it,selectedItem.toString(),endTime )
                         }
                         timerActive = true
                         collectedMinutes = 0 // 초기화
@@ -253,7 +291,7 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
                         // 수집 중인 시간을 업데이트하는 로직을 추가할 수 있습니다.
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(32,178,170)
+                        containerColor =  Color(0x04, 0x61, 0x66)
                     ),
                     modifier = Modifier
                         .padding(horizontal = 8.dp)
@@ -263,31 +301,20 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
                     Text(text = "비콘 수집")
                 }
                 Button(
-                    onClick = { timerActive = false
+                    onClick = {
+                              timerActive = false
+                        if (watchId != null) {
+                            viewModel.deleteEndTime(watchId)
+                        }
                               viewModel.deleteState(watchId.toString())}, // 버튼 클릭 시 수집 중단
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(32,178,170)
+                        containerColor =  Color(0x04, 0x61, 0x66)
                     ),
                     modifier = Modifier
                         .padding(horizontal = 8.dp)
                         .weight(1f),
-                    enabled = selectedItem != null
                 ) {
                     Text(text = "수집 중지")
-                }
-            }
-
-            if (isCollecting) {
-                Box(
-                    contentAlignment = Alignment.Center, // 내용을 중앙에 배치
-                    modifier = Modifier
-                        .fillMaxSize() // Box를 화면 전체 크기로 설정
-                ) {
-                    Text(
-                        text = "수집 중: $collectedMinutes 분 $collectedSeconds 초",
-                        color = Color.Black,
-                        fontSize = 16.sp
-                    )
                 }
             }
         }

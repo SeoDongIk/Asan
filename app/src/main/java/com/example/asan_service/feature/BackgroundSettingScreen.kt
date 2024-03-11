@@ -78,7 +78,7 @@ fun BackgroundSettingScreen(navController : NavController,viewModel: ImageViewMo
     val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
     val imageList by viewModel.imageList.observeAsState()
-    viewModel.getImageList()
+
 
     val getContent =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->

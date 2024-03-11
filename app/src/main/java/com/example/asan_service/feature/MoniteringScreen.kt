@@ -29,6 +29,7 @@ import androidx.navigation.NavController
 import android.util.Base64
 import android.util.Log
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
@@ -44,6 +45,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+data class DotInfo(
+    val dragosition: Offset,
+    val watchId: String,
+    val name: String
+)
+
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,15 +62,26 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel) {
     var dragEnd by remember { mutableStateOf(Offset.Zero) }
     var isDragging by remember { mutableStateOf(false) }
     val dragDataList = remember { mutableStateListOf<DragData>() }
-    val imageId = navController.currentBackStackEntry?.arguments?.getString("imageId")?.toLongOrNull()
+    val imageId =
+        navController.currentBackStackEntry?.arguments?.getString("imageId")?.toLongOrNull()
     val imageName = navController.currentBackStackEntry?.arguments?.getString("imageName")
     val imageData = viewModel.imageData.observeAsState().value
     val coordinateList = viewModel.coordinateList.observeAsState().value
-    val watchPositionsMap = remember { mutableStateOf<HashMap<String, String>>(HashMap()) }
+    val watchPositionsMap =
+        remember { mutableStateOf<HashMap<String, MutableMap<String, String>>>(HashMap()) }
     val coroutineScope = rememberCoroutineScope()
     val timers = remember { mutableMapOf<String, Job>() }
+    val dotInfos = remember { mutableStateListOf<DotInfo>() }
+    var watchPositions = viewModel.watchPositions.observeAsState().value
 
 
+    LaunchedEffect(imageId) {
+        imageId?.let {
+            viewModel.fetchImageData(imageId)
+            viewModel.getPositionAndCoordinateList(imageId)
+        }
+        Log.e("watchPositions1",watchPositions.toString())
+    }
 
     DisposableEffect(context) {
         val intentFilter = IntentFilter("com.example.asan_service.POSITION_UPDATE")
@@ -69,51 +89,86 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel) {
             override fun onReceive(context: Context?, intent: Intent?) {
                 val watchId = intent?.getStringExtra("watchId")
                 val position = intent?.getStringExtra("position")
-                if (watchId != null && position != null) {
-                    // 이전에 설정된 타이머가 있으면 취소합니다.
+                val name = intent?.getStringExtra("watchName")
+                if (watchId != null && position != null && name != null) {
+                    // 해당 watchId에 대한 기존 타이머 취소
                     timers[watchId]?.cancel()
 
-                    // Intent로 받은 값을 로컬 HashMap에 저장합니다.
-                    val currentMap = HashMap(watchPositionsMap.value) // 새 HashMap 인스턴스 생성
-                    currentMap[watchId] = position // 새 인스턴스에 값 추가
-                    // 상태 업데이트를 트리거합니다.
-                    watchPositionsMap.value = HashMap(currentMap)
+                    viewModel.updatePositionInfo(watchId,position,name)
 
-                    // watchId에 대한 새 타이머를 설정합니다.
+                    // 이 watchId에 대한 새 타이머 설정
                     timers[watchId] = coroutineScope.launch {
                         delay(10000) // 10초 대기
-                        // 10초 후에 실행될 작업: 해당 watchId 삭제
-                        currentMap.remove(watchId)
-                        watchPositionsMap.value = HashMap(currentMap) // 새 인스턴스로 상태 업데이트
-                        // 타이머 맵에서 해당 타이머 제거
-                        timers.remove(watchId)
+                        // 지연 후 이 watchId 제거
+                        viewModel.removePositionInfo(watchId)
+                        timers.remove(watchId) // 타이머 제거
                     }
                 }
             }
         }
+        Log.e("watchPosition4s",watchPositions.toString())
         LocalBroadcastManager.getInstance(context).registerReceiver(receiver, intentFilter)
         onDispose {
             LocalBroadcastManager.getInstance(context).unregisterReceiver(receiver)
             // 컴포저블이 제거될 때 모든 타이머를 취소합니다.
             timers.values.forEach { it.cancel() }
         }
+
     }
 
+    Log.e("watchPositions2",watchPositions.toString())
 
-//
+
+    LaunchedEffect(watchPositions) {
+        dotInfos.clear() // 기존 위치 정보를 클리어
+        Log.e("업데이트 있니?","네")
+        Log.e("watchPositions3",watchPositions.toString())
+        // dragDataList의 각 항목에 대해서 실행
+        dragDataList.forEach { dragData ->
+            // 현재 dragData의 position에 해당하는 watchId 및 name 정보를 담는 임시 리스트 생성
+            val tempInfos = mutableListOf<DotInfo>()
 
 
-    // watchPositions가 변경될 때마다 로그를 출력하고, lastUpdateTimestamp를 업데이트합니다.
-    LaunchedEffect(watchPositionsMap) {
-        Log.d("MonitoringScreen", "watchPositions updated: ${watchPositionsMap}")
-    }
+            watchPositions?.forEach { (watchId, positionInfo) ->
+                // positionInfo의 position과 dragData.position을 비교
+                if (positionInfo.position == dragData.position) {
+                    val dotPosition = Offset(
+                        dragData.startX + (dragData.endX - dragData.startX) / 2,
+                        dragData.startY + (dragData.endY - dragData.startY) / 2
+                    )
+                    tempInfos.add(DotInfo(dotPosition, watchId, positionInfo.name))
+                }
+            }
 
-    LaunchedEffect(imageId) {
-        imageId?.let {
-            viewModel.fetchImageData(imageId)
-            viewModel.getPositionAndCoordinateList(imageId)
+            // 동일 position을 공유하는 모든 항목에 대하여 영역을 등분
+            val count = tempInfos.size
+            if (count > 0) {
+                val areaWidth = dragData.endX - dragData.startX
+                val segmentWidth = areaWidth / count
+
+                tempInfos.forEachIndexed { index, info ->
+                    val dotPositionX = dragData.startX + segmentWidth * index + segmentWidth / 2
+
+                    val dotPositionY = (dragData.startY + dragData.endY) / 2
+                    // 업데이트된 위치 정보로 DotInfo 객체를 다시 생성
+                    dotInfos.add(
+                        DotInfo(
+                            Offset(dotPositionX, dotPositionY),
+                            info.watchId,
+                            info.name
+                        )
+                    )
+                }
+                dotInfos.forEach { dotInfo ->
+                    Log.e("DotInfo", "ID: ${dotInfo.watchId}, Name: ${dotInfo.name}, Position: ${dotInfo.dragosition}")
+                }
+            }
         }
     }
+
+
+
+
 
     LaunchedEffect(coordinateList) {
         coordinateList?.let { list ->
@@ -152,7 +207,8 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel) {
                             ""
                         },
                         color = Color.White
-                    )},
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = {
                         navController.navigate("MainScreen")
@@ -198,6 +254,45 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel) {
                             DisplayImageUrlImage(imageData.imageUrl)
                         }
 
+
+
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+
+                            dotInfos.forEach { (position, watchId, name) ->
+                                drawCircle(
+                                    color = Color.Red,
+                                    center = position,
+                                    radius = 10f,
+                                    style = Fill
+                                )
+                                Log.e("watchId1234",watchId + " " +name)
+
+                                drawContext.canvas.nativeCanvas.apply {
+                                    save()
+                                    rotate(90f, position.x, position.y)
+                                    val textPaint = android.graphics.Paint().apply {
+                                        color = android.graphics.Color.BLACK
+                                        textSize = 30f
+                                        textAlign = android.graphics.Paint.Align.CENTER
+                                    }
+
+                                    drawText(
+                                        "ID: $watchId, Name: $name",
+                                        position.x,
+                                        position.y + 35f,
+                                        textPaint
+                                    )
+                                    restore()
+                                }
+
+
+                            }
+                        }
+                    }
+                }
+            }
+
+
 //                        Canvas(modifier = Modifier.fillMaxSize()) {
 //                            drawIntoCanvas { canvas ->
 //                                dragDataList.forEach { dragData ->
@@ -239,33 +334,8 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel) {
 //                                )
 //                            }
 //                        }
-                        Canvas(modifier = Modifier.fillMaxSize()) {
-                            Log.e("watchPositionsMap",watchPositionsMap.toString())
-                            // watchPositionsMap를 순회하며 각 position에 대한 빨간 점을 그립니다.
-                            watchPositionsMap.value.forEach { (watchId, position) ->
-                                // 현재 position에 해당하는 DragData를 찾습니다.
-                                val dragData = dragDataList.find { it.position == position }
-                                Log.e("씨발",dragData.toString())
-                                dragData?.let {
-                                    // 빨간 점의 위치를 계산합니다. 예시로, DragData의 중심 위치에 점을 그립니다.
-                                    val dotPosition = Offset(
-                                        x = (dragData.startX + dragData.endX) / 2,
-                                        y = (dragData.startY + dragData.endY) / 2
-                                    )
 
-                                    drawCircle(
-                                        color = Color.Red,
-                                        center = dotPosition,
-                                        radius = 20f, // 빨간 점의 크기. 필요에 따라 조절 가능
-                                        style = Fill
-                                    )
-                                }
-                            }
-                        }
 
-                    }
-                }
-            }
 
 
             Spacer(modifier = Modifier.weight(0.005f, fill = true))

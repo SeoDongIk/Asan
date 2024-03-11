@@ -22,9 +22,8 @@ import com.example.asan_service.InsertStateData
 import com.example.asan_service.NameHostData
 import com.example.asan_service.PositionList
 import com.example.asan_service.PositionListResponse
+import com.example.asan_service.StatusResponse
 import com.example.asan_service.UploadImageResponse
-import com.example.asan_service.dao.WatchItemDao
-import com.example.asan_service.entity.WatchItemEntity
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,12 +31,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.ResponseBody
-import okhttp3.logging.HttpLoggingInterceptor
-import org.json.JSONException
-import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -47,6 +42,11 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
+data class PositionInfo(
+    val position: String,
+    val name: String,
+    val timestamp: Long = System.currentTimeMillis()
+)
 
 
 
@@ -65,6 +65,35 @@ class ImageViewModel() : ViewModel() {
     private val _positionList = MutableLiveData<List<PositionList>?>()
     val positionList: LiveData<List<PositionList>?> = _positionList
 
+    private val _endTimes = MutableStateFlow<Map<Long, Long>>(emptyMap())
+    val endTimes: StateFlow<Map<Long, Long>> = _endTimes.asStateFlow()
+
+
+    private val _watchPositions = MutableLiveData<HashMap<String, PositionInfo>>(HashMap())
+    val watchPositions: LiveData<HashMap<String, PositionInfo>> = _watchPositions
+
+
+    fun updatePositionInfo(watchId: String, position: String, name: String) {
+
+        val currentMap = _watchPositions.value ?: HashMap()
+
+        // PositionInfo에 timestamp가 추가되어 있으므로,
+        // 동일한 watchId, position, name이라도 timestamp의 변경으로 인해
+        // 항상 새로운 값으로 간주됩니다.
+        currentMap[watchId] = PositionInfo(position, name)
+
+        // LiveData 업데이트
+        _watchPositions.value = HashMap(currentMap)
+        Log.e("살려줘 제발",watchPositions.value.toString())
+    }
+
+
+    fun removePositionInfo(watchId: String) {
+        val currentMap = _watchPositions.value ?: return
+        currentMap.remove(watchId)
+        _watchPositions.value = currentMap
+    }
+
 
     private val retrofit = Retrofit.Builder()
         .baseUrl("http://210.102.178.186:8080/")
@@ -73,6 +102,8 @@ class ImageViewModel() : ViewModel() {
 
 
     private val apiService = retrofit.create(ApiService::class.java)
+
+
 
     // 이미지 목록 가져오기
     fun getImageList() {
@@ -92,6 +123,46 @@ class ImageViewModel() : ViewModel() {
             }
         })
     }
+
+    fun updateEndTime(watchId: Long, endTime: Long) {
+        val updatedEndTimes = _endTimes.value.toMutableMap()
+        updatedEndTimes[watchId] = endTime
+        _endTimes.value = updatedEndTimes
+    }
+
+    fun deleteEndTime(watchId: Long) {
+        val updatedEndTimes = _endTimes.value.toMutableMap()
+        updatedEndTimes.remove(watchId)
+        _endTimes.value = updatedEndTimes
+    }
+
+    fun getCollectionStatus(watchId: String) {
+        apiService.getCollectionStatus(watchId).enqueue(object :
+            Callback<StatusResponse> {
+            override fun onResponse(
+                call: Call<StatusResponse>,
+                response: Response<StatusResponse>
+            ) {
+                if (response.isSuccessful) {
+                    // `data` 필드에서 endTime 추출
+                    val endTime = response.body()?.data ?: return // 예시에서 `data`가 endTime을 포함한다고 가정
+                    // endTime을 StateFlow에 업데이트
+                    if(endTime != 0L) {
+                        updateEndTime(watchId.toLong(), endTime)
+                    }
+                } else {
+                    // 오류 처리
+                    Log.e("ImageViewModel", "Error fetching endTime data: ${response.errorBody()?.string()}")
+                }
+            }
+
+            override fun onFailure(call: Call<StatusResponse>, t: Throwable) {
+                // 통신 실패 처리
+                Log.e("ImageViewModel", "Failed to fetch endTime data", t)
+            }
+        })
+    }
+
 
 
 
@@ -247,11 +318,12 @@ class ImageViewModel() : ViewModel() {
 
 
 
-    fun insertState(androidId : String , imageId : Long,position : String){
+    fun insertState(androidId : String , imageId : Long,position : String, endTime : Long){
         val state = InsertStateData(
             androidId = androidId,
             imageId = imageId,
-            position = position
+            position = position,
+            endTime = endTime,
         )
         apiService.insertState(state).enqueue(object :
             Callback<ResponseBody> {
