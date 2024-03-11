@@ -8,7 +8,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -41,7 +40,8 @@ fun MainScreen(navController: NavController, viewModel: ImageViewModel) {
     var secret_box by remember { mutableStateOf(false) }
     var text by remember { mutableStateOf("") }
 
-    viewModel.getImageList()
+
+    Log.e("imageList",imageList.toString())
 
     NavigationDrawer(
         drawerContent = {
