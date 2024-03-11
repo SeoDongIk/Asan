@@ -251,7 +251,6 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
                     viewModel.deleteEndTime(watchId)
                 }
                     timerActive = false
-                    viewModel.deleteState(watchId.toString())
                 }
 
 
