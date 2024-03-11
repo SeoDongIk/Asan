@@ -164,11 +164,13 @@ class MyWebSocketService : Service() {
                                         val dataObject = JSONObject(message.payload).getJSONObject("data")
                                         val watchId = dataObject.optString("watchId")
                                         val position = dataObject.optString("position")
+                                        val name = dataObject.optString("watchName")
 
                                         Intent().also { intent ->
                                             intent.action = "com.example.asan_service.POSITION_UPDATE"
                                             intent.putExtra("watchId",watchId)
                                             intent.putExtra("position", position)
+                                            intent.putExtra("watchName",name)
                                             LocalBroadcastManager.getInstance(this@MyWebSocketService).sendBroadcast(intent)
                                         }
                                     }
