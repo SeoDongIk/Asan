@@ -42,7 +42,6 @@ data class ImageIdAndName(
     val imageName : String
 )
 
-
 data class PositionList(
     val imageId: Long,
     val coordinateId : Long,
@@ -73,6 +72,11 @@ data class ImageListResponse(
     val data: ImageDataList
 )
 
+data class StatusResponse(
+    val status: Int,
+    val message: String,
+    val data: Long
+)
 
 data class PositionListResponse(
     val status: Int,
@@ -84,6 +88,7 @@ data class InsertStateData(
     val androidId: String,
     val imageId: Long,
     val position: String,
+    val endTime : Long
 )
 
 data class DeleteStateData(
@@ -113,14 +118,17 @@ interface ApiService {
     @POST("/api/location/insertState")
     fun insertState(@Body state: InsertStateData): Call<ResponseBody>
 
-
-
     @POST("/api/location/deleteState")
     fun deleteState(@Body state: DeleteStateData): Call<ResponseBody>
 
     // 환자 이름 변경
     @POST("/api/watch/{id}")
     fun changeName(@Path("id") id: Long, @Body namehostData: NameHostData ): Call<ResponseBody>
+
+
+    @GET("/api/location/getCollectionStatus/{id}")
+    fun getCollectionStatus(@Path("id") androidId : String) : Call<StatusResponse>
+
 
     @GET("api/image/getImage/{id}")
     fun getImage(@Path("id") id: Long): Call<GetImageResponse>
