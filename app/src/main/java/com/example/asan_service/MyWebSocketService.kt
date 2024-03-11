@@ -17,29 +17,35 @@ import com.example.asan_service.entity.*
 
 import com.example.asan_service.viewmodel.MonitorViewModel
 import kotlinx.coroutines.*
+import okhttp3.OkHttpClient
 import org.json.JSONObject
 import ua.naiksoftware.stomp.Stomp
 import ua.naiksoftware.stomp.StompClient
+import ua.naiksoftware.stomp.dto.LifecycleEvent
 import ua.naiksoftware.stomp.dto.StompHeader
 import ua.naiksoftware.stomp.dto.StompMessage
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class MyWebSocketService : Service() {
 
     private val CHANNEL_ID = "MyForegroundServiceChannel"
     private val NOTIFICATION_ID = 12345
     private lateinit var db: AppDatabase
+    private lateinit var client : StompClient
+
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
         db = AppDatabase.getInstance(applicationContext)
+        client = createStompClient()
 
         GlobalScope.launch(Dispatchers.IO) {
-//            db.accXDao().deleteAllData()
-//            db.accYDao().deleteAllData()
-//            db.accZDao().deleteAllData()
-//            db.heartRateDao().deleteAllData()
+            db.accXDao().deleteAllData()
+            db.accYDao().deleteAllData()
+            db.accZDao().deleteAllData()
+            db.heartRateDao().deleteAllData()
         }
     }
 
@@ -52,7 +58,6 @@ class MyWebSocketService : Service() {
                 if (response.status == 200) {
                     val watchList = response.data.watchList
                     val watchIds = watchList.map { it.watchId }
-                    val client = createStompClient()
                     Log.d("service2", "0-1차 연결 : " + response.toString())
                     GlobalScope.launch(Dispatchers.IO) {
                         client.waitForConnection()
@@ -73,6 +78,23 @@ class MyWebSocketService : Service() {
                         db.watchItemDao().insertAll(watchItemEntities)
 
                         Log.d("service2", "1차 연결 : " + "연결된 워치 구독 시작")
+
+                        client.lifecycle().subscribe { lifecycleEvent ->
+                            when (lifecycleEvent.type) {
+                                LifecycleEvent.Type.OPENED -> {
+                                    Log.d("service2", " 1차 연결 : OPENED")
+                                }
+                                LifecycleEvent.Type.CLOSED -> {
+                                    Log.d("service2", "1차 연결 : CLOSED")
+                                }
+                                LifecycleEvent.Type.ERROR -> {
+                                    Log.d("service2", "1차 연결 : ERROR " +  lifecycleEvent.exception.toString())
+                                }
+                                else ->{
+                                    Log.d("service2", "1차 연결 : ELSE " + lifecycleEvent.message)
+                                }
+                            }
+                        }
 
                         client.subscribe("/queue/sensor/9999999") { message ->
                             Log.d("service2", "1차 연결 : " + "연결된 워치 구독 중")
@@ -105,19 +127,19 @@ class MyWebSocketService : Service() {
                                 Log.d("service2", message.payload)
                                 when (JSONObject(message.payload).getString("messageType")) {
                                     "GYROSCOPE" -> {
-                                        Log.d("service2", JSONObject(message.payload).getJSONObject("data").getDouble("gyroX").toString())
-                                        Log.d("service2", "ok1")
-                                        db.gyroXDao().insertData(GyroXEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroX").toInt()))
-                                        db.gyroYDao().insertData(GyroYEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroY").toInt()))
-                                        db.gyroZDao().insertData(GyroZEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroZ").toInt()))
-
-                                        JSONObject(message.payload).getJSONObject("data").getDouble("gyroX")
-                                        JSONObject(message.payload).getJSONObject("data").getDouble("gyroY")
-                                        JSONObject(message.payload).getJSONObject("data").getDouble("gyroZ")
+//                                        Log.d("service", JSONObject(message.payload).getJSONObject("data").getDouble("gyroX").toString())
+//                                        Log.d("service", "ok1")
+//                                        db.gyroXDao().insertData(GyroXEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroX").toInt()))
+//                                        db.gyroYDao().insertData(GyroYEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroY").toInt()))
+//                                        db.gyroZDao().insertData(GyroZEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroZ").toInt()))
+//
+//                                        JSONObject(message.payload).getJSONObject("data").getDouble("gyroX")
+//                                        JSONObject(message.payload).getJSONObject("data").getDouble("gyroY")
+//                                        JSONObject(message.payload).getJSONObject("data").getDouble("gyroZ")
                                     }
                                     "ACCELEROMETER" -> {
                                         Log.d("service2", JSONObject(message.payload).getJSONObject("data").getDouble("accX").toString())
-                                        Log.d("service2", "ok2")
+                                        Log.d("service2", "ACCELEROMETER ok")
                                         db.accXDao().insertData(AccXEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = (JSONObject(message.payload).getJSONObject("data").getDouble("accX")).toFloat(), timeStamp = (JSONObject(message.payload).getJSONObject("data").getString("timeStamp"))))
                                         db.accYDao().insertData(AccYEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = (JSONObject(message.payload).getJSONObject("data").getDouble("accY")).toFloat(), timeStamp = (JSONObject(message.payload).getJSONObject("data").getString("timeStamp"))))
                                         db.accZDao().insertData(AccZEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = (JSONObject(message.payload).getJSONObject("data").getDouble("accZ")).toFloat(), timeStamp = (JSONObject(message.payload).getJSONObject("data").getString("timeStamp"))))
@@ -127,52 +149,52 @@ class MyWebSocketService : Service() {
                                         JSONObject(message.payload).getJSONObject("data").getDouble("accZ")
                                     }
                                     "LIGHT" -> {
-                                        Log.d("service2", "ok3")
-                                        JSONObject(message.payload).getJSONObject("data").getDouble("value")
+//                                        Log.d("service2", "ok3")
+//                                        JSONObject(message.payload).getJSONObject("data").getDouble("value")
                                     }
                                     "BAROMETER" -> {
-                                        Log.d("service2", "ok4")
-                                        JSONObject(message.payload).getJSONObject("data").getDouble("value")
+//                                        Log.d("service2", "ok4")
+//                                        JSONObject(message.payload).getJSONObject("data").getDouble("value")
                                     }
                                     "HEART_RATE" -> {
-                                        Log.d("service2", "ok5")
+                                        Log.d("service2", "HEART_RATE ok")
                                         db.heartRateDao().insertData(HeartRateEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getInt("value"), timeStamp = (JSONObject(message.payload).getJSONObject("data").getString("timeStamp"))))
-
                                     }
                                     "POSITION" -> {
                                         val dataObject = JSONObject(message.payload).getJSONObject("data")
                                         val watchId = dataObject.optString("watchId")
                                         val position = dataObject.optString("position")
-                                        val name = dataObject.optString("watchName")
 
                                         Intent().also { intent ->
                                             intent.action = "com.example.asan_service.POSITION_UPDATE"
                                             intent.putExtra("watchId",watchId)
                                             intent.putExtra("position", position)
-                                            intent.putExtra("watchName",name)
                                             LocalBroadcastManager.getInstance(this@MyWebSocketService).sendBroadcast(intent)
                                         }
                                     }
                                     else -> {
-                                        Log.d("service2", "fail!!!")
+                                        Log.d("service2", "POSITION ok")
                                     }
                                 }
                             }
-                        }
+                        }                    //
 
                     }
-
                 } else {
-
                 }
             } catch (e: Exception) {
+                //
             }
         }
         return super.onStartCommand(intent, flags, startId)
     }
 
     private fun createStompClient(): StompClient {
-        val client = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://192.168.45.154:8080/ws")
+        val okHttpClient = OkHttpClient.Builder()
+            .connectTimeout(180, TimeUnit.SECONDS) // 30초로 연결 시간 초과 설정
+            .build()
+
+        val client = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://210.102.178.186:8080/ws",null, okHttpClient)
         val headers = arrayListOf<StompHeader>()
 
         headers.add(StompHeader("Authorization", "9999999"))
