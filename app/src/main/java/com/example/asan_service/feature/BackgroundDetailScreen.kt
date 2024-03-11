@@ -196,7 +196,7 @@ fun BackgroundDetailScreen(navController : NavController,viewModel: ImageViewMod
                             dragEnd = Offset.Zero
                             expanded_square = false
                         }
-                    }) {
+                    }, enabled = textFieldValue.isNotBlank()) {
                         Text("확인")
                     }
                 },
