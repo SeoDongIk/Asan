@@ -42,15 +42,16 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
-data class PositionInfo(
-    val position: String,
-    val name: String,
-    val timestamp: Long = System.currentTimeMillis()
-)
 
 
 
 class ImageViewModel() : ViewModel() {
+
+    data class PositionInfo(
+        val position: String,
+        val name: String,
+        val timestamp: Long = System.currentTimeMillis()
+    )
 
     private val _imageData = MutableLiveData<ImageData?>()
 
@@ -67,6 +68,7 @@ class ImageViewModel() : ViewModel() {
 
     private val _endTimes = MutableStateFlow<Map<Long, Long>>(emptyMap())
     val endTimes: StateFlow<Map<Long, Long>> = _endTimes.asStateFlow()
+
 
 
     private val _watchPositions = MutableLiveData<HashMap<String, PositionInfo>>(HashMap())
@@ -348,6 +350,7 @@ class ImageViewModel() : ViewModel() {
             Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 Log.d("changeName", " name successfully change")
+                getImageList()
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
