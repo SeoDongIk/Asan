@@ -34,7 +34,6 @@ class MyWebSocketService : Service() {
     private lateinit var db: AppDatabase
     private lateinit var client : StompClient
 
-
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
@@ -126,17 +125,6 @@ class MyWebSocketService : Service() {
                             client.subscribe(destination) { message ->
                                 Log.d("service2", message.payload)
                                 when (JSONObject(message.payload).getString("messageType")) {
-                                    "GYROSCOPE" -> {
-//                                        Log.d("service", JSONObject(message.payload).getJSONObject("data").getDouble("gyroX").toString())
-//                                        Log.d("service", "ok1")
-//                                        db.gyroXDao().insertData(GyroXEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroX").toInt()))
-//                                        db.gyroYDao().insertData(GyroYEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroY").toInt()))
-//                                        db.gyroZDao().insertData(GyroZEntity(watchId = destination.split("/").lastOrNull() ?: "0",value = JSONObject(message.payload).getJSONObject("data").getDouble("gyroZ").toInt()))
-//
-//                                        JSONObject(message.payload).getJSONObject("data").getDouble("gyroX")
-//                                        JSONObject(message.payload).getJSONObject("data").getDouble("gyroY")
-//                                        JSONObject(message.payload).getJSONObject("data").getDouble("gyroZ")
-                                    }
                                     "ACCELEROMETER" -> {
                                         Log.d("service2", JSONObject(message.payload).getJSONObject("data").getDouble("accX").toString())
                                         Log.d("service2", "ACCELEROMETER ok")
@@ -147,14 +135,6 @@ class MyWebSocketService : Service() {
                                         JSONObject(message.payload).getJSONObject("data").getDouble("accX")
                                         JSONObject(message.payload).getJSONObject("data").getDouble("accY")
                                         JSONObject(message.payload).getJSONObject("data").getDouble("accZ")
-                                    }
-                                    "LIGHT" -> {
-//                                        Log.d("service2", "ok3")
-//                                        JSONObject(message.payload).getJSONObject("data").getDouble("value")
-                                    }
-                                    "BAROMETER" -> {
-//                                        Log.d("service2", "ok4")
-//                                        JSONObject(message.payload).getJSONObject("data").getDouble("value")
                                     }
                                     "HEART_RATE" -> {
                                         Log.d("service2", "HEART_RATE ok")
@@ -183,6 +163,7 @@ class MyWebSocketService : Service() {
 
                     }
                 } else {
+                    //
                 }
             } catch (e: Exception) {
                 //
