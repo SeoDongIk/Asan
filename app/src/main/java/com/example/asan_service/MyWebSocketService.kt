@@ -96,7 +96,8 @@ class MyWebSocketService : Service() {
                         }
 
                         client.subscribe("/queue/sensor/9999999") { message ->
-                            Log.d("service2", "1차 연결 : " + "연결된 워치 구독 중")
+                            Log.d("service2", "1차 연결 : " + "연결된 워치 구독 중 -> " + JSONObject(message.payload).toString())
+
                             val watchItemEntities = watchList.map {
                                 WatchItemEntity(
                                     watchId = it.watchId.toString(),

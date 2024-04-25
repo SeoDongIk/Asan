@@ -29,15 +29,15 @@ class StaticalViewModel(
     }.asLiveData()
 
     var accXs : LiveData<List<Pair<Long, Float>>> = MutableLiveData(emptyList())
-    var accYs : LiveData<List<Pair<Float, Float>>> = MutableLiveData(emptyList())
-    var accZs : LiveData<List<Pair<Float, Float>>> = MutableLiveData(emptyList())
+    var accYs : LiveData<List<Pair<Long, Float>>> = MutableLiveData(emptyList())
+    var accZs : LiveData<List<Pair<Long, Float>>> = MutableLiveData(emptyList())
     var heartRates : LiveData<List<Pair<Long, Float>>> = MutableLiveData(emptyList())
 
     fun changeValue(newValue: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            accXs = accXDao.getOldestData(newValue).map { it.map { Pair(it.timeStamp.toLong(), it.value.toFloat()) } }.asLiveData()
-            accYs = accYDao.getOldestData(newValue).map { it.map { Pair(it.timeStamp.toFloat(), it.value.toFloat()) } } .asLiveData()
-            accZs = accZDao.getOldestData(newValue).map { it.map { Pair(it.timeStamp.toFloat(), it.value.toFloat()) } } .asLiveData()
+            accXs = accXDao.getOldestData(newValue).map { it.map { Pair(it.timeStamp.toLong(), it.value) } }.asLiveData()
+            accYs = accYDao.getOldestData(newValue).map { it.map { Pair(it.timeStamp.toLong(), it.value) } }.asLiveData()
+            accZs = accZDao.getOldestData(newValue).map { it.map { Pair(it.timeStamp.toLong(), it.value) } }.asLiveData()
             heartRates = heartRateDao.getOldestData(newValue).map { it.map { Pair(it.timeStamp.toLong(), it.value.toFloat()) }}.asLiveData()
         }
     }

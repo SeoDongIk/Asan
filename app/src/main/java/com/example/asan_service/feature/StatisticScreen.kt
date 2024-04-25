@@ -69,24 +69,31 @@ fun StatisticScreen(navController : NavController, viewModel: StaticalViewModel)
         var selectedItem by remember { mutableStateOf<Item?>(null) }
         val scrollState = rememberScrollState()
         val usersState by viewModel.users.observeAsState(initial = emptyList())
-        val accXs by viewModel.accXs.observeAsState(initial = emptyList())
-        val accYs by viewModel.accYs.observeAsState(initial = emptyList())
-        val accZs by viewModel.accZs.observeAsState(initial = emptyList())
-        val heartRates by viewModel.heartRates.observeAsState(initial = emptyList())
 
         var items = usersState.map {
             val currentTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(it.date), ZoneId.systemDefault())
             Item(it.name, it.host, it.watchId, currentTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
         }
-        var accSVM = sumOfSquareRoots(accXs.map { it.second.toInt() }, accYs.map { it.second.toInt() }, accZs.map { it.second.toInt() })
-        var accSVM_time_first = if(accXs.isNotEmpty()) accXs[0].first else 0
-        var accSVM_time = accXs.map { (((accSVM_time_first -it.first).toDouble()) / 1000.0).toFloat() }
-        var accSVM_ziped = accSVM_time.zip(accSVM)
+
+        val heartRates by viewModel.heartRates.observeAsState(initial = emptyList())
+        val accXs by viewModel.accXs.observeAsState(initial = emptyList())
+        val accYs by viewModel.accYs.observeAsState(initial = emptyList())
+        val accZs by viewModel.accZs.observeAsState(initial = emptyList())
+
+        Log.d("ziped_data", "heartRates : " + heartRates.toString())
 
         var heartRates_first = if(heartRates.isNotEmpty()) heartRates[0].first else 0
         var heartRates_ziped = if(heartRates.isNotEmpty()) heartRates.map {
-            Pair((((heartRates_first-it.first).toDouble()) / 1000.0).toFloat(),it.second)
+            Pair(((heartRates_first-it.first).toFloat()), it.second)
         } else emptyList()
+
+        Log.d("ziped_data", "heartRates_first : " + heartRates_first.toString())
+        Log.d("ziped_data", "heartRates_ziped : " + heartRates_ziped.toString())
+
+        var accSVM = sumOfSquareRoots(accXs.map { it.second.toInt() }, accYs.map { it.second.toInt() }, accZs.map { it.second.toInt() })
+        var accSVM_time_first = if(accXs.isNotEmpty()) accXs[0].first else 0
+        var accSVM_time = accXs.map { (accSVM_time_first -it.first).toFloat() }
+        var accSVM_ziped = accSVM_time.zip(accSVM)
 
         Column(
             modifier = Modifier

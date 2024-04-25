@@ -42,8 +42,6 @@ class MainActivity : ComponentActivity() {
         db = AppDatabase.getInstance(applicationContext)
         startService(Intent(this, MyWebSocketService::class.java))
 
-
-
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -66,9 +64,6 @@ class MainActivity : ComponentActivity() {
                 MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION
             )
         }
-
-
-
 
         setContent {
             val navController = rememberNavController()
@@ -98,12 +93,7 @@ class MainActivity : ComponentActivity() {
                             db.accXDao(),
                             db.accYDao(),
                             db.accZDao(),
-                            db.gyroXDao(),
-                            db.gyroYDao(),
-                            db.gyroZDao(),
-                            db.lightDao(),
-                            db.heartRateDao(),
-                            db.baroDao())
+                            db.heartRateDao())
                             )
                         }
                         composable("BackgroundSettingScreen") {
@@ -131,8 +121,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-
 
     override fun onRequestPermissionsResult(requestCode: Int,
                                             permissions: Array<out String>,

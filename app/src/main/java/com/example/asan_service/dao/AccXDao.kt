@@ -9,7 +9,10 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AccXDao {
-    @Query("SELECT * FROM accxentity WHERE watchId = :watchId ORDER BY id DESC LIMIT 12000")
+//    @Query("SELECT * FROM accxentity WHERE watchId = :watchId ORDER BY id DESC LIMIT 12000")
+//    fun getOldestData(watchId: String): Flow<List<AccXEntity>>
+
+    @Query("SELECT * FROM accxentity WHERE watchId = :watchId AND (id, timeStamp) IN (SELECT MAX(id), timeStamp FROM accxentity WHERE watchId = :watchId GROUP BY timeStamp) ORDER BY timeStamp DESC LIMIT 12000")
     fun getOldestData(watchId: String): Flow<List<AccXEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
