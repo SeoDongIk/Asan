@@ -1,6 +1,7 @@
 package com.example.asan_service.feature
 
 
+import android.content.Intent
 import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -20,18 +21,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.asan_service.MyWebSocketService
 import com.example.asan_service.PositionList
 import com.example.asan_service.viewmodel.ImageViewModel
 import com.example.asan_service.viewmodel.ScannerSettingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,8 +60,8 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
     }
 
 
-
-
+    val context = LocalContext.current
+    val intent = remember { Intent(context, MyWebSocketService::class.java) }
 
 
     Scaffold(
@@ -154,6 +155,7 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
                     }
                     scannerSettingViewModel.changeNickName(watchId.toString(), userInput)
                     showConfirmationDialog = true
+                    context.startService(intent)
                 }, // 버튼 클릭 시 수행할 동작을 정의합니다.
                 colors = ButtonDefaults.buttonColors(
                     containerColor =  Color(0x04, 0x61, 0x66)
@@ -330,8 +332,8 @@ fun DropdownLayout1(
     var expanded by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
-
-
+    val context = LocalContext.current
+    val intent = remember { Intent(context, MyWebSocketService::class.java) }
 
     Column(
         modifier = Modifier.padding(horizontal = 5.dp)
@@ -389,6 +391,7 @@ fun DropdownLayout1(
                                     .clickable {
                                         onItemSelected(item.position, item.imageId)
                                         expanded = false
+                                        context.startService(intent)
                                     }
                                     .padding(vertical = 8.dp, horizontal = 16.dp)
                             ) {

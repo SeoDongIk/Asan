@@ -231,7 +231,7 @@ fun TimeSeriesGraph(data: List<Pair<Float, Float>>) {
             for (i in 1..5) {
                 drawIntoCanvas { canvas ->
                     canvas.nativeCanvas.drawText(
-                        "${i * 20}",
+                        "${i * 20*2}",
                         size.width + 25f,
                         size.height - i * yGridStep + 10f,
                         paint
@@ -241,7 +241,7 @@ fun TimeSeriesGraph(data: List<Pair<Float, Float>>) {
 
             // Calculate step sizes for data points
             val xStep = size.width / 120f
-            val yStep = size.height / 100f
+            val yStep = size.height / 100f * 2f
 
             // Draw data points
             data.forEachIndexed { index, pair ->
