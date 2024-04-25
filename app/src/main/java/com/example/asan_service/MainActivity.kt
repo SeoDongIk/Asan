@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -37,10 +38,13 @@ import com.example.asan_service.viewmodel.StaticalViewModel
 class MainActivity : ComponentActivity() {
     private lateinit var db: AppDatabase
     private val MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
+    private lateinit var viewModel: ImageViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         db = AppDatabase.getInstance(applicationContext)
         startService(Intent(this, MyWebSocketService::class.java))
+        viewModel = ViewModelProvider(this)[ImageViewModel::class.java]
+        viewModel.getImageList()
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
@@ -80,7 +84,7 @@ class MainActivity : ComponentActivity() {
                         startDestination = "MainScreen"
                     ) {
                         composable("MainScreen") {
-                            MainScreen(navController, ImageViewModel())
+                            MainScreen(navController, viewModel)
                         }
                         composable("ConnectScreen") {
                             ConnectScreen(navController, ConnectScreenViewModel(db.watchItemDao()))
@@ -97,7 +101,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("BackgroundSettingScreen") {
-                            BackgroundSettingScreen(navController, ImageViewModel())
+                            BackgroundSettingScreen(navController, viewModel)
                         }
                         composable("BackgroundDetailScreen/{imageId}?imageName={imageName}") { backStackEntry ->
                             val viewModel = ImageViewModel() // 필요에 따라 파라미터 추가
@@ -108,12 +112,12 @@ class MainActivity : ComponentActivity() {
                             ScannerSettingScreen(navController,ConnectScreenViewModel(db.watchItemDao()))
                         }
                         composable("WatchSettingScreen/{watchId}") {
-                            WatchSettingScreen(navController,ImageViewModel(),
+                            WatchSettingScreen(navController, viewModel,
                                 ScannerSettingViewModel(db.watchItemDao(),db.nickNameDao())
                             )
                         }
                         composable("MoniteringScreen/{imageId}?imageName={imageName}") {
-                            MoniteringScreen(navController, ImageViewModel())
+                            MoniteringScreen(navController, viewModel)
                         }
 
                     }
