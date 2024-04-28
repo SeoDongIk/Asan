@@ -241,7 +241,7 @@ fun TimeSeriesGraph(data: List<Pair<Float, Float>>) {
 
             // Calculate step sizes for data points
             val xStep = size.width / 120f
-            val yStep = size.height / 100f * 2f
+            val yStep = size.height / 100f * 0.5f
 
             // Draw data points
             data.forEachIndexed { index, pair ->
