@@ -25,7 +25,6 @@ import com.example.asan_service.viewmodel.ConnectScreenViewModel
 @Composable
 fun ConnectScreen(navController : NavController, viewModel: ConnectScreenViewModel) {
     val usersState by viewModel.users.observeAsState(initial = emptyList())
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -55,10 +54,9 @@ fun ConnectScreen(navController : NavController, viewModel: ConnectScreenViewMod
     ) {
         val sortedList = usersState
         val data = sortedList.map {
-            Triple(
-                Pair(it.name, it.host),
-                Pair(painterResource(id = R.drawable.heart), "80"),
-                Triple(it.connected,if(it.connected) painterResource(id = R.drawable.connect) else painterResource(id = R.drawable.notconnect), ((System.currentTimeMillis()-it.date) / (1000*60)).toString() + "분")
+            Pair(
+                Pair(it.watchId, it.name),
+                Triple(it.connected, if(it.connected) painterResource(id = R.drawable.connect) else painterResource(id = R.drawable.notconnect), ((System.currentTimeMillis() - it.date) / (1000 * 60)).toString() + "분")
             )
         }
 
@@ -68,12 +66,12 @@ fun ConnectScreen(navController : NavController, viewModel: ConnectScreenViewMod
 
 
 @Composable
-fun MultiRowColumnTable(data: List<Triple<Pair<String, String>, Pair<Painter, String>, Triple<Boolean, Painter, String>>>) {
+fun MultiRowColumnTable(data: List<Pair<Pair<String, String>, Triple<Boolean, Painter, String>>>) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(data) { row ->
             Row(
                 modifier = Modifier
-                    .background(if (row.third.first) Color.White else Color(0xFF, 0x57, 0xC1, 0x14))
+                    .background(if (row.second.first) Color.White else Color(0xFF, 0x57, 0xC1, 0x14))
                     .fillMaxWidth()
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -83,38 +81,23 @@ fun MultiRowColumnTable(data: List<Triple<Pair<String, String>, Pair<Painter, St
                     modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(text = row.first.first)
+                    Text(text = "watch Id : " + row.first.first)
                     Text(text = row.first.second)
                 }
 
-                // 두 번째 열: 아이콘 1개와 텍스트 1개 가로 배치
-                Row(
-                    modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Image(
-                        painter = row.second.first,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = row.second.second)
-                }
-
-                // 세 번째 열: 아이콘 1개와 텍스트 1개 세로 배치
+                // 세 번째 열 (이제 두 번째 열): 아이콘 1개와 텍스트 1개 세로 배치
                 Column(
                     modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Image(
-                        painter = row.third.second,
+                        painter = row.second.second,
                         contentDescription = null,
                         modifier = Modifier
                             .size(40.dp)
                             .background(Color.Transparent)
                     )
-                    Text(text = if(row.third.first) "-" else row.third.third)
+                    Text(text = if(row.second.first) "-" else row.second.third)
                 }
             }
         }
