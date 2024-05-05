@@ -14,9 +14,12 @@ import com.example.asan_service.dao.AccYDao
 import com.example.asan_service.dao.AccZDao
 import com.example.asan_service.dao.WatchItemDao
 import com.example.asan_service.entity.*
+import com.example.asan_service.parser.WatchItem
 
 import com.example.asan_service.viewmodel.MonitorViewModel
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import okhttp3.OkHttpClient
 import org.json.JSONObject
 import ua.naiksoftware.stomp.Stomp
@@ -56,8 +59,11 @@ class MyWebSocketService : Service() {
                 val response = watchService.getWatchList("9999999")
                 if (response.status == 200) {
                     val watchList = response.data.watchList
-                    val watchIds = watchList.map { it.watchId }
+                    Log.d("watchList",watchList.toString());
+                    val watchIds: Set<String> = watchList.map { it.watchId.toString() }.toSet()
+
                     Log.d("service2", "0-1차 연결 : " + response.toString())
+
                     GlobalScope.launch(Dispatchers.IO) {
                         client.waitForConnection()
                         Log.d("service2", "0-2차 연결 : " + "소켓 연결 완료 (구독 준비 중)")
@@ -74,7 +80,10 @@ class MyWebSocketService : Service() {
                                 modelName = "Abcdefghd"
                             )
                         }
+
+
                         db.watchItemDao().insertAll(watchItemEntities)
+
 
                         Log.d("service2", "1차 연결 : " + "연결된 워치 구독 시작")
 
@@ -98,18 +107,56 @@ class MyWebSocketService : Service() {
                         client.subscribe("/queue/sensor/9999999") { message ->
                             Log.d("service2", "1차 연결 : " + "연결된 워치 구독 중 -> " + JSONObject(message.payload).toString())
 
-                            val watchItemEntities = watchList.map {
-                                WatchItemEntity(
-                                    watchId = it.watchId.toString(),
-                                    patientName = it.name,
-                                    patientRoom = it.host,
-                                    isConnected = it.watchId.toString() in JSONObject(message.payload).getString("data"),
-                                    measuredDate = System.currentTimeMillis(),
-                                    modelName = "Abcdefghd"
-                                )
+                            val messageData = JSONObject(message.payload).getString("data")
+
+                            val inactiveWatchIds: List<WatchItem> = watchList.filter { !messageData.contains(it.watchId.toString()) }
+                            Log.d("inactiveWatchIds",inactiveWatchIds.toString())
+
+
+                            if (messageData.equals("[]")) {
+                                // 메시지 데이터가 비어 있으면, 데이터베이스의 모든 WatchItemEntity의 isConnected를 false로 설정
+                                val watchItemEntities = watchList.map {
+                                    WatchItemEntity(
+                                        watchId = it.watchId.toString(),
+                                        patientName = it.name,
+                                        patientRoom = it.host,
+                                        isConnected = false,
+                                        measuredDate = System.currentTimeMillis(),
+                                        modelName = "Abcdefghd"
+                                    )
+                                }
+                                db.watchItemDao().insertAll(watchItemEntities)
+                            } else {
+                                // 메시지 데이터가 비어 있지 않은 경우, 정상적으로 처리
+                                val watchItemEntities = watchList.map {
+                                    WatchItemEntity(
+                                        watchId = it.watchId.toString(),
+                                        patientName = it.name,
+                                        patientRoom = it.host,
+                                        isConnected = it.watchId.toString() in messageData,
+                                        measuredDate = System.currentTimeMillis(),
+                                        modelName = "Abcdefghd"
+                                    )
+                                }
+
+                                val inactiveWatchItemEntities = inactiveWatchIds.map {
+                                    WatchItemEntity(
+                                        watchId = it.watchId.toString(),
+                                        patientName = it.name,
+                                        patientRoom = it.host,
+                                        isConnected = false,
+                                        measuredDate = System.currentTimeMillis(),
+                                        modelName = "Abcdefghd"
+                                    )
+                                }
+                                val connectedWatchItemEntities = watchItemEntities.filter { it.isConnected }
+                                db.watchItemDao().insertAll(connectedWatchItemEntities)
+                                db.watchItemDao().insertAll(inactiveWatchItemEntities)
                             }
-                            val connectedWatchItemEntities = watchItemEntities.filter { it.isConnected }
-                            db.watchItemDao().insertAll(connectedWatchItemEntities)
+
+
+
+
                             Log.d("service2", "1차 연결 : " + "연결된 워치 구독 완료")
                             deferred.complete(Unit)
                         }
