@@ -41,6 +41,8 @@ import kotlin.math.roundToInt
 import org.json.JSONObject
 import android.util.Base64
 import androidx.compose.runtime.livedata.observeAsState
+import com.example.asan_service.data.User
+import com.example.asan_service.util.ScannerScreen
 import com.example.asan_service.viewmodel.ConnectScreenViewModel
 import java.io.ByteArrayOutputStream
 
@@ -48,9 +50,10 @@ import java.io.ByteArrayOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScannerSettingScreen (navController : NavController,viewModel: ConnectScreenViewModel) {
-    val usersState by viewModel.connectedUsers.observeAsState(initial = emptyList())
-
+fun ScannerSettingScreen(navController: NavController, viewModel: ConnectScreenViewModel) {
+    val usersState by viewModel.sortedUsers.observeAsState(initial = emptyList())
+    var screen by remember { mutableStateOf(ScannerScreen.AllWatches) } // 초기 화면 상태는 '전체 워치'
+    val connectedUsers = usersState.filter { it.connected } // '연결된 워치'만 필터링
 
     Scaffold(
         topBar = {
@@ -60,90 +63,113 @@ fun ScannerSettingScreen (navController : NavController,viewModel: ConnectScreen
                     titleContentColor = MaterialTheme.colorScheme.primary
                 ),
                 title = {
-                    Text(
-                        "설정",
-                        color = Color.White
-                    )
+                    Text("스캐너 설정", color = Color.White)
                 },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigate("MainScreen")
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.ArrowBack,
-                            contentDescription = null,
-                            tint = Color.White
-                        )
+                    IconButton(onClick = { navController.navigate("MainScreen") }) {
+                        Icon(Icons.Filled.ArrowBack, contentDescription = null, tint = Color.White)
                     }
                 }
             )
         }
-    )
-    {
-
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(4.dp)
-        ) {
-            if (usersState.isEmpty()) {
-                item {
-                    Text(
-                        "연결된 워치가 없습니다. 연결 상태를 확인해주세요.",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        textAlign = TextAlign.Center
+    ) {
+        Column {
+            // 탭 버튼 배치
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color(0x04, 0x61, 0x66)) // 배경색 지정
+            ) {
+                Button(
+                    onClick = { screen = ScannerScreen.AllWatches },
+                    modifier = Modifier
+                        .weight(1f),
+                    shape = RectangleShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0x04, 0x61, 0x66),
+                        contentColor = if (screen == ScannerScreen.AllWatches) Color.Black else Color.White
                     )
+                ) {
+                    Text("전체 워치")
                 }
-            } else {
-                items(usersState) { userState -> // `userState`는 리스트의 각 항목을 나타냅니다.
-                    Column(
-                        modifier = Modifier
-                            .border(
-                                BorderStroke(1.dp, Color(0x04, 0x61, 0x66)),
-                                shape = RoundedCornerShape(8.dp)
-                            )
-                            .fillMaxWidth()
-                            .padding(4.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                Button(
+                    onClick = { screen = ScannerScreen.ConnectedWatches },
+                    modifier = Modifier
+                        .weight(1f),
+                    shape = RectangleShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0x04, 0x61, 0x66),
+                        contentColor = if (screen == ScannerScreen.ConnectedWatches) Color.Black else Color.White
+                    )
+                ) {
+                    Text("연결된 워치")
+                }
+            }
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start
-                        ) {
-                            Text(text = "watch id: ${userState.watchId}")
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = "환자 이름: ${userState.name}")
-                        }
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.End
-                        ) {
-                            Button(
-                                onClick = { navController.navigate("WatchSettingScreen/${userState.watchId}") }, // `usersState`를 `userState`로 변경
-                                modifier = Modifier.padding(4.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0x04, 0x61, 0x66)
-                                ),
-                            ) {
-                                Text(text = "세부 설정")
-                            }
-                        }
+            // 화면 내용
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(4.dp)
+            ) {
+                val currentList = if (screen == ScannerScreen.AllWatches) usersState else connectedUsers
+                if (currentList.isEmpty()) {
+                    item {
+                        Text(
+                            "연결된 워치가 없습니다. 연결 상태를 확인해주세요.",
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            textAlign = TextAlign.Center
+                        )
                     }
-                    Spacer(modifier = Modifier.size(4.dp))
+                } else {
+                    items(currentList) { user ->
+                        UserRow(user, navController)
+                    }
                 }
             }
         }
     }
 }
+
+@Composable
+fun UserRow(user: User, navController: NavController) {
+    Column(
+        modifier = Modifier
+            .border(
+                BorderStroke(1.dp, Color(0x04, 0x61, 0x66)),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .fillMaxWidth()
+            .padding(4.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Text(text = "watch id: ${user.watchId}")
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "환자 이름: ${user.name}")
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.End
+        ) {
+            Button(
+                onClick = { navController.navigate("WatchSettingScreen/${user.watchId}") },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0x04, 0x61, 0x66))
+            ) {
+                Text("세부 설정")
+            }
+        }
+    }
+    Spacer(modifier = Modifier.size(4.dp))
+}
+
