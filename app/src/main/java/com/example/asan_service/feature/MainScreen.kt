@@ -26,25 +26,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.asan_service.viewmodel.ImageViewModel
+import com.example.asan_service.viewmodel.PasswordViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(navController: NavController, viewModel: ImageViewModel) {
+fun MainScreen(navController: NavController, viewModel: ImageViewModel, passwordViewModel: PasswordViewModel) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var SoundisOn by remember { mutableStateOf(false) }
-    var VibrateisOn by remember { mutableStateOf(false) }
-    var PopUpisOn by remember { mutableStateOf(false) }
     val imageList by viewModel.imageList.observeAsState()
     var secret_box by remember { mutableStateOf(false) }
     var text by remember { mutableStateOf("") }
+    val hasVisitedSettings by passwordViewModel.hasVisitedSettings.observeAsState()
 
-
-    Log.e("imageList",imageList.toString())
+    fun checkPasswordAndNavigate(screen: String, hasVisited: Boolean?) {
+        if (!hasVisited!!) {
+            secret_box = true
+            if (text == "1234") { // 올바른 비밀번호 확인
+                secret_box = false
+                text = ""
+                Log.d("hasVisitedSettings",hasVisitedSettings.toString())
+                navController.navigate(screen)
+            } else {
+                text = ""
+            }
+        } else {
+            Log.d("hasVisitedSettings",hasVisitedSettings.toString())
+            navController.navigate(screen) // 이미 방문한 경우 바로 네비게이션
+        }
+    }
 
     NavigationDrawer(
         drawerContent = {
+
             Row(
                 modifier = Modifier
                     .background(Color.Gray)
@@ -62,170 +76,16 @@ fun MainScreen(navController: NavController, viewModel: ImageViewModel) {
                 )
             }
 
-            Row(
-                modifier = Modifier
-                    .background(Color(0x04, 0x61, 0x66))
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "소리 설정",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                )
-                Spacer(modifier = Modifier.width(150.dp))
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(color = if (SoundisOn) Color.White else Color.Gray, shape = RoundedCornerShape(8.dp))
-                        .clickable {
-                            SoundisOn = !SoundisOn
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "ON",
-                        color = if (SoundisOn) Color.Black else Color.White
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(color = if (SoundisOn) Color.Gray else Color.White, shape = RoundedCornerShape(8.dp))
-                        .clickable {
-                            SoundisOn = !SoundisOn
-                        },
-                    contentAlignment = Alignment.Center
-                ){
-                    Text(
-                        text = "OFF",
-                        color = if (SoundisOn) Color.White else Color.Black
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .background(Color(0x04, 0x61, 0x66))
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "진동설정",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                )
-                Spacer(modifier = Modifier.width(150.dp))
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(color = if (VibrateisOn) Color.White else Color.Gray, shape = RoundedCornerShape(8.dp))
-                        .clickable {
-                            VibrateisOn = !VibrateisOn
-                        },
-                    contentAlignment = Alignment.Center
-                ){
-                    Text(
-                        text = "ON",
-                        color = if (VibrateisOn) Color.Black else Color.White
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(color = if (VibrateisOn) Color.Gray else Color.White, shape = RoundedCornerShape(8.dp))
-                        .clickable {
-                            VibrateisOn = !VibrateisOn
-                        },
-                    contentAlignment = Alignment.Center
-                ){
-                    Text(
-                        text = "OFF",
-                        color = if (VibrateisOn) Color.White else Color.Black
-                    )
-                }
-            }
-            Row(
-                modifier = Modifier
-                    .background(Color(0x04, 0x61, 0x66))
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "팝업 설정",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                )
-                Spacer(modifier = Modifier.width(150.dp))
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(color = if (PopUpisOn) Color.White else Color.Gray, shape = RoundedCornerShape(8.dp))
-                        .clickable {
-                            PopUpisOn = !PopUpisOn
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "ON",
-                        color = if (PopUpisOn) Color.Black else Color.White
-                    )
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(color = if (PopUpisOn) Color.Gray else Color.White, shape = RoundedCornerShape(8.dp))
-                        .clickable {
-                            PopUpisOn = !PopUpisOn
-                        },
-                    contentAlignment = Alignment.Center
-                ){
-                    Text(
-                        text = "OFF",
-                        color = if (PopUpisOn) Color.White else Color.Black
-                    )
-                }
-            }
 
             Row(
                 modifier = Modifier
-                    .background(Color.Gray)
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "데이터",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 8.dp)
-                )
-            }
-            Row(
-                modifier = Modifier
                     .background(Color(0x04, 0x61, 0x66))
                     .fillMaxWidth()
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "통계량",
+                    text = "센서 대시보드",
                     color = Color.White,
                     fontSize = 20.sp,
                     modifier = Modifier
@@ -243,6 +103,16 @@ fun MainScreen(navController: NavController, viewModel: ImageViewModel) {
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                if(!hasVisitedSettings!!) {
+                    Text(
+                        text = "위치 설정(잠금 상태)",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = 8.dp)
+                    )
+                }else{
                 Text(
                     text = "위치 설정",
                     color = Color.White,
@@ -251,7 +121,7 @@ fun MainScreen(navController: NavController, viewModel: ImageViewModel) {
                         .weight(1f)
                         .padding(start = 8.dp)
                 )
-            }
+            }}
             Row(
                 modifier = Modifier
                     .background(Color(0x04, 0x61, 0x66))
@@ -265,7 +135,7 @@ fun MainScreen(navController: NavController, viewModel: ImageViewModel) {
                     fontSize = 20.sp,
                     modifier = Modifier
                         .clickable {
-                            navController.navigate("BackgroundSettingScreen")
+                            checkPasswordAndNavigate("BackgroundSettingScreen", hasVisitedSettings)
                         }
                         .weight(1f)
                         .padding(start = 8.dp)
@@ -284,7 +154,7 @@ fun MainScreen(navController: NavController, viewModel: ImageViewModel) {
                     fontSize = 20.sp,
                     modifier = Modifier
                         .clickable {
-                            navController.navigate("ScannerSettingScreen")
+                            checkPasswordAndNavigate("ScannerSettingScreen", hasVisitedSettings)
                         }
                         .weight(1f)
                         .padding(start = 8.dp)
@@ -292,6 +162,7 @@ fun MainScreen(navController: NavController, viewModel: ImageViewModel) {
             }
         },
         drawerState = drawerState
+
     ) {
         Scaffold(
             topBar = {
@@ -332,14 +203,16 @@ fun MainScreen(navController: NavController, viewModel: ImageViewModel) {
                 )
             }
         ) {
+            Log.e("secret_box",secret_box.toString())
 
-            if (secret_box) {
+            if (secret_box && !hasVisitedSettings!!) {
+
                 AlertDialog(
                     onDismissRequest = {
                         secret_box = false
                     },
                     title = {
-                        Text("비밀 번호를 입력해주세요.",
+                        Text("비밀번호를 입력해주세요.",
                             fontSize = 16.sp,
                             textAlign = TextAlign.Center
                         )
@@ -366,7 +239,7 @@ fun MainScreen(navController: NavController, viewModel: ImageViewModel) {
                     confirmButton = {
                         Button(onClick = {
                             if(text == "1234") {
-                                navController.navigate("BackgroundSettingScreen")
+                                passwordViewModel.setHasVisitedSettings(true)
                             } else {
                                 text = ""
                             }
@@ -389,6 +262,7 @@ fun MainScreen(navController: NavController, viewModel: ImageViewModel) {
                     }
                 )
             }
+
 
             ImageListDisplay(imageList = imageList ,navController =navController )
 
