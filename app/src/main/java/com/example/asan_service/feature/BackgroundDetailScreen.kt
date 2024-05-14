@@ -36,6 +36,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import com.example.asan_service.viewmodel.ImageViewModel
+import com.example.asan_service.viewmodel.PasswordViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.CoroutineScope
@@ -47,7 +48,7 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BackgroundDetailScreen(navController : NavController,viewModel: ImageViewModel) {
+fun BackgroundDetailScreen(navController : NavController,viewModel: ImageViewModel,passwordViewModel: PasswordViewModel) {
     val context = LocalContext.current
     var dragStart by remember { mutableStateOf(Offset.Zero) }
     var dragEnd by remember { mutableStateOf(Offset.Zero) }
@@ -198,6 +199,7 @@ fun BackgroundDetailScreen(navController : NavController,viewModel: ImageViewMod
                         }
                     }, enabled = textFieldValue.isNotBlank()) {
                         Text("확인")
+                        viewModel.getPositionList()
                     }
                 },
                 dismissButton = {
@@ -319,6 +321,7 @@ fun BackgroundDetailScreen(navController : NavController,viewModel: ImageViewMod
 
                                     }) {
                                         Text("삭제")
+                                        viewModel.getPositionList()
                                     }
                                 },
                                 dismissButton = {
