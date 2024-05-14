@@ -42,6 +42,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.ViewModel
 import com.example.asan_service.viewmodel.ImageViewModel
+import com.example.asan_service.viewmodel.PasswordViewModel
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -74,7 +75,7 @@ data class DragData(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BackgroundSettingScreen(navController : NavController,viewModel: ImageViewModel) {
+fun BackgroundSettingScreen(navController : NavController,viewModel: ImageViewModel,passwordViewModel: PasswordViewModel) {
     val selectedImageUri = remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
     val imageList by viewModel.imageList.observeAsState()
