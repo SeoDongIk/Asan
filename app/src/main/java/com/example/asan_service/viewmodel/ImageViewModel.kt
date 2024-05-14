@@ -24,6 +24,7 @@ import com.example.asan_service.PositionList
 import com.example.asan_service.PositionListResponse
 import com.example.asan_service.StatusResponse
 import com.example.asan_service.UploadImageResponse
+import com.example.asan_service.dao.WatchItemDao
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,6 +69,9 @@ class ImageViewModel() : ViewModel() {
 
     private val _endTimes = MutableStateFlow<Map<Long, Long>>(emptyMap())
     val endTimes: StateFlow<Map<Long, Long>> = _endTimes.asStateFlow()
+
+    private val _posotions = MutableStateFlow<Map<Long, String>>(emptyMap())
+    val collectPosition: StateFlow<Map<Long, String>> = _posotions.asStateFlow()
 
 
 
@@ -132,6 +136,18 @@ class ImageViewModel() : ViewModel() {
         _endTimes.value = updatedEndTimes
     }
 
+    fun updatePosition(watchId: Long, Position: String) {
+        val updatedPositions = _posotions.value.toMutableMap()
+        updatedPositions[watchId] = Position
+        _posotions.value = updatedPositions
+    }
+
+    fun deletePosition(watchId: Long) {
+        val updatedPositions = _posotions.value.toMutableMap()
+        updatedPositions.remove(watchId)
+        _posotions.value = updatedPositions
+    }
+
     fun deleteEndTime(watchId: Long) {
         val updatedEndTimes = _endTimes.value.toMutableMap()
         updatedEndTimes.remove(watchId)
@@ -147,20 +163,22 @@ class ImageViewModel() : ViewModel() {
             ) {
                 if (response.isSuccessful) {
                     // `data` 필드에서 endTime 추출
-                    val endTime = response.body()?.data ?: return // 예시에서 `data`가 endTime을 포함한다고 가정
+                    val positionState = response.body()?.data ?: return // 예시에서 `data`가 endTime을 포함한다고 가정
+                    Log.d("response.body()?.data",response.body().toString())
                     // endTime을 StateFlow에 업데이트
-                    if(endTime != 0L) {
-                        updateEndTime(watchId.toLong(), endTime)
+                    if(positionState.endTime != 0L) {
+                        updateEndTime(watchId.toLong(), positionState.endTime)
+                        updatePosition(watchId.toLong(),positionState.position)
                     }
                 } else {
                     // 오류 처리
-                    Log.e("ImageViewModel", "Error fetching endTime data: ${response.errorBody()?.string()}")
+                    Log.e("getCollectionStatus", "Error fetching endTime data: ${response.errorBody()?.string()}")
                 }
             }
 
             override fun onFailure(call: Call<StatusResponse>, t: Throwable) {
                 // 통신 실패 처리
-                Log.e("ImageViewModel", "Failed to fetch endTime data", t)
+                Log.e("getCollectionStatus", "Failed to fetch endTime data", t)
             }
         })
     }
@@ -369,6 +387,8 @@ class ImageViewModel() : ViewModel() {
             Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 Log.d("changeName", " name successfully change")
+
+
             }
 
             override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
