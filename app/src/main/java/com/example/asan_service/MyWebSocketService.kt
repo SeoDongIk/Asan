@@ -41,6 +41,7 @@ class MyWebSocketService : Service() {
         super.onCreate()
         createNotificationChannel()
         db = AppDatabase.getInstance(applicationContext)
+
         client = createStompClient()
 
         GlobalScope.launch(Dispatchers.IO) {
@@ -48,6 +49,7 @@ class MyWebSocketService : Service() {
             db.accYDao().deleteAllData()
             db.accZDao().deleteAllData()
             db.heartRateDao().deleteAllData()
+
         }
     }
 
@@ -70,19 +72,19 @@ class MyWebSocketService : Service() {
 
                         val deferred = CompletableDeferred<Unit>()
 
-                        val watchItemEntities = watchList.map {
-                            WatchItemEntity(
-                                watchId = it.watchId.toString(),
-                                patientName = it.name,
-                                patientRoom = it.host,
-                                isConnected = false,
-                                measuredDate = System.currentTimeMillis(),
-                                modelName = "Abcdefghd"
-                            )
-                        }
-
-
-                        db.watchItemDao().insertAll(watchItemEntities)
+//                        val watchItemEntities = watchList.map {
+//                            WatchItemEntity(
+//                                watchId = it.watchId.toString(),
+//                                patientName = it.name,
+//                                patientRoom = it.host,
+//                                isConnected = true,
+//                                measuredDate = System.currentTimeMillis(),
+//                                modelName = "Abcdefghd"
+//                            )
+//                        }
+//
+//
+//                        db.watchItemDao().insertAll(watchItemEntities)
 
 
                         Log.d("service2", "1차 연결 : " + "연결된 워치 구독 시작")
@@ -161,12 +163,12 @@ class MyWebSocketService : Service() {
                             deferred.complete(Unit)
                         }
 
-                        deferred.await()
+//                        deferred.await()
 
                         Log.d("service2", "2차 연결 : " + "센서 데이터 구독 시작")
 
-                        val destinationList = watchIds.toString().map {
-                            "/queue/sensor/$it"
+                        val destinationList = watchIds.map { watchId ->
+                            "/queue/sensor/$watchId"
                         }
 
                         destinationList.forEach { destination ->
