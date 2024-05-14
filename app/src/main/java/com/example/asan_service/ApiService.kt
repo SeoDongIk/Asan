@@ -8,6 +8,7 @@ import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.HTTP
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
@@ -19,6 +20,14 @@ data class ImageData(
     val imageUrl: String
 )
 
+
+data class PositionState(
+    val id : Long,
+    val imageId : Long,
+    val position : String,
+    val startTime : Long,
+    val endTime: Long
+)
 
 data class CoordinateData(
     val imageId: Long,
@@ -60,6 +69,11 @@ data class GetImageResponse(
     val data: ImageData
 )
 
+data class BeaconCount(
+    val position : String,
+    val counts : Int
+)
+
 data class UploadImageResponse(
     val status: Int,
     val message: String,
@@ -72,16 +86,25 @@ data class ImageListResponse(
     val data: ImageDataList
 )
 
+
+
 data class StatusResponse(
     val status: Int,
     val message: String,
-    val data: Long
+    val data: PositionState
 )
 
 data class PositionListResponse(
     val status: Int,
     val message: String,
     val data: List<PositionList>
+)
+
+
+data class BeaconCountResponse(
+    val status: Int,
+    val message: String,
+    val data: List<BeaconCount>
 )
 
 data class InsertStateData(
@@ -100,6 +123,9 @@ data class NameHostData(
     val host: String,
 )
 
+data class PositionNameData(
+    val position : String
+)
 
 
 interface ApiService {
@@ -133,6 +159,9 @@ interface ApiService {
     @GET("api/image/getImage/{id}")
     fun getImage(@Path("id") id: Long): Call<GetImageResponse>
 
+    @GET("api/location/countBeacon")
+    fun countBeacon(): Call<BeaconCountResponse>
+
     @GET("api/image/getPositionAndCoordinateList/{id}")
     fun getPositionAndCoordinateList(@Path("id") id: Long): Call<GetCoordinateResponse>
 
@@ -144,6 +173,14 @@ interface ApiService {
 
     @DELETE("api/image/deleteImage/{id}")
     fun deleteImage(@Path("id") id: Long): Call<ResponseBody>
+
+    @DELETE("api/watch/delete/{id}")
+    fun deleteWatch(@Path("id") id: Long): Call<ResponseBody>
+
+
+    @HTTP(method = "DELETE", path = "api/location/deleteBeacon", hasBody = true)
+    fun deleteBeacon(@Body positionNameData: PositionNameData): Call<ResponseBody>
+
 
     @DELETE("api/image/deleteImagePositionAndCoordinates/{positionName}")
     fun deleteCoordinate(@Path("positionName") positionName: String): Call<ResponseBody>
