@@ -23,21 +23,30 @@ import com.example.asan_service.feature.WatchSettingScreen
 import com.example.asan_service.ui.theme.Asan_ServiceTheme
 import com.example.asan_service.viewmodel.ConnectScreenViewModel
 import com.example.asan_service.viewmodel.ImageViewModel
+import com.example.asan_service.viewmodel.PasswordViewModel
 import com.example.asan_service.viewmodel.ScannerSettingViewModel
 import com.example.asan_service.viewmodel.StaticalViewModel
+import com.example.asan_service.viewmodel.WatchSettingViewModel
+
 
 
 class MainActivity : ComponentActivity() {
     private lateinit var db: AppDatabase
     private val MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
     private lateinit var viewModel: ImageViewModel
+    //    private lateinit var watchSettingViewModel: WatchSettingViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         db = AppDatabase.getInstance(applicationContext)
         startService(Intent(this, MyWebSocketService::class.java))
         viewModel = ViewModelProvider(this)[ImageViewModel::class.java]
+//        watchSettingViewModel = ViewModelProvider(this)[WatchSettingViewModel::class.java]
+        val passwordViewModel: PasswordViewModel = PasswordViewModel()
 
+
+        WatchSettingViewModel(db.watchItemDao()).getCountBeacon()
         viewModel.getImageList()
+        viewModel.getPositionList()
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
@@ -80,7 +89,7 @@ class MainActivity : ComponentActivity() {
                         startDestination = "MainScreen"
                     ) {
                         composable("MainScreen") {
-                            MainScreen(navController,viewModel)
+                            MainScreen(navController,viewModel,passwordViewModel)
                         }
                         composable("ConnectScreen") {
                             ConnectScreen(navController, ConnectScreenViewModel(db.watchItemDao()))
@@ -97,21 +106,22 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         composable("BackgroundSettingScreen") {
-                            BackgroundSettingScreen(navController, viewModel)
+                            BackgroundSettingScreen(navController, viewModel,passwordViewModel)
                         }
                         composable("BackgroundDetailScreen/{imageId}?imageName={imageName}") { backStackEntry ->
-                            BackgroundDetailScreen(navController, viewModel)
+                            BackgroundDetailScreen(navController, viewModel,passwordViewModel)
                         }
                         composable("ScannerSettingScreen") {
-                            ScannerSettingScreen(navController,ConnectScreenViewModel(db.watchItemDao()))
+                            ScannerSettingScreen(navController,
+                                ConnectScreenViewModel(db.watchItemDao()),passwordViewModel)
                         }
-                        composable("WatchSettingScreen/{watchId}") {
+                        composable("WatchSettingScreen/{watchId}/{watchName}/{connected}") {
                             WatchSettingScreen(navController,viewModel,
-                                ScannerSettingViewModel(db.watchItemDao(),db.nickNameDao())
+                                ConnectScreenViewModel(db.watchItemDao()),WatchSettingViewModel(db.watchItemDao())
                             )
                         }
                         composable("MoniteringScreen/{imageId}?imageName={imageName}") {
-                            MoniteringScreen(navController, viewModel )
+                            MoniteringScreen(navController, viewModel , passwordViewModel)
                         }
 
                     }
