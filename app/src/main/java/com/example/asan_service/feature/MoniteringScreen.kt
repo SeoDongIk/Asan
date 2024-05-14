@@ -28,17 +28,23 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import android.util.Base64
 import android.util.Log
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Typeface
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.bumptech.glide.Glide
 import com.example.asan_service.util.PositionUpdateReceiver
 import com.example.asan_service.viewmodel.ImageViewModel
 import com.example.asan_service.viewmodel.MonitorViewModel
+import com.example.asan_service.viewmodel.PasswordViewModel
+import com.example.asan_service.viewmodel.WatchSettingViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -47,7 +53,7 @@ import kotlinx.coroutines.withContext
 
 data class DotInfo(
     val dragosition: Offset,
-    val watchId: String,
+//    val watchId: String,
     val name: String
 )
 
@@ -56,7 +62,7 @@ data class DotInfo(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel) {
+fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel, passwordViewModel : PasswordViewModel) {
     val context = LocalContext.current
     var dragStart by remember { mutableStateOf(Offset.Zero) }
     var dragEnd by remember { mutableStateOf(Offset.Zero) }
@@ -67,12 +73,14 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel) {
     val imageName = navController.currentBackStackEntry?.arguments?.getString("imageName")
     val imageData = viewModel.imageData.observeAsState().value
     val coordinateList = viewModel.coordinateList.observeAsState().value
-    val watchPositionsMap =
-        remember { mutableStateOf<HashMap<String, MutableMap<String, String>>>(HashMap()) }
     val coroutineScope = rememberCoroutineScope()
     val timers = remember { mutableMapOf<String, Job>() }
     val dotInfos = remember { mutableStateListOf<DotInfo>() }
     var watchPositions = viewModel.watchPositions.observeAsState().value
+    val hasVisitedSettings by passwordViewModel.hasVisitedSettings.observeAsState()
+    var secret_box by remember { mutableStateOf(false) }
+    var text by remember { mutableStateOf("") }
+
 
 
     LaunchedEffect(imageId) {
@@ -136,7 +144,7 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel) {
                         dragData.startX + (dragData.endX - dragData.startX) / 2,
                         dragData.startY + (dragData.endY - dragData.startY) / 2
                     )
-                    tempInfos.add(DotInfo(dotPosition, watchId, positionInfo.name))
+                    tempInfos.add(DotInfo(dotPosition, positionInfo.name))
                 }
             }
 
@@ -154,13 +162,13 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel) {
                     dotInfos.add(
                         DotInfo(
                             Offset(dotPositionX, dotPositionY),
-                            info.watchId,
+//                            info.watchId,
                             info.name
                         )
                     )
                 }
                 dotInfos.forEach { dotInfo ->
-                    Log.e("DotInfo", "ID: ${dotInfo.watchId}, Name: ${dotInfo.name}, Position: ${dotInfo.dragosition}")
+                    Log.e("DotInfo", "Name: ${dotInfo.name}, Position: ${dotInfo.dragosition}")
                 }
             }
         }
@@ -225,6 +233,67 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel) {
     )
 
     {
+
+        if (secret_box && !hasVisitedSettings!!) {
+
+            AlertDialog(
+                onDismissRequest = {
+                    secret_box = false
+                },
+                title = {
+                    Text("비밀번호를 입력해주세요.",
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                },
+                text = {
+                    BasicTextField(
+                        value = text,
+                        onValueChange = { newText ->
+                            text = newText
+                        },
+                        modifier = Modifier
+                            .border(
+                                width = 1.dp,
+                                color = Color(0x04, 0x61, 0x66),
+                                shape = RoundedCornerShape(8.dp)
+                            )
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done
+                        )
+                    )
+                },
+                confirmButton = {
+                    Button(onClick = {
+                        if(text == "1234") {
+                            passwordViewModel.setHasVisitedSettings(true)
+                            navController.navigate("BackgroundDetailScreen/$imageId?imageName=$imageName")
+                        } else {
+                            text = ""
+                        }
+                        secret_box = false
+                    },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0x04, 0x61, 0x66)),
+                    ) {
+                        Text("입력")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = {
+                        text = ""
+                        secret_box = false
+                    },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0x04, 0x61, 0x66)),
+                    ) {
+                        Text("취소")
+                    }
+                }
+            )
+        }
+
+
         Column(modifier = Modifier.fillMaxSize()) {
             Box(modifier = Modifier.weight(1f)) {
                 Column(
@@ -258,28 +327,29 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel) {
 
                         Canvas(modifier = Modifier.fillMaxSize()) {
 
-                            dotInfos.forEach { (position, watchId, name) ->
+                            dotInfos.forEach { (position, name) ->
                                 drawCircle(
                                     color = Color.Red,
                                     center = position,
                                     radius = 10f,
                                     style = Fill
                                 )
-                                Log.e("watchId1234",watchId + " " +name)
+                                Log.e("watchId1234",  " " +name)
 
                                 drawContext.canvas.nativeCanvas.apply {
                                     save()
                                     rotate(90f, position.x, position.y)
                                     val textPaint = android.graphics.Paint().apply {
                                         color = android.graphics.Color.BLACK
-                                        textSize = 30f
+                                        textSize = 35f
                                         textAlign = android.graphics.Paint.Align.CENTER
+                                        typeface = android.graphics.Typeface.DEFAULT_BOLD
                                     }
 
                                     drawText(
-                                        "ID: $watchId, Name: $name",
+                                        " Name: $name",
                                         position.x,
-                                        position.y + 35f,
+                                        position.y + 40f,
                                         textPaint
                                     )
                                     restore()
@@ -350,11 +420,17 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel) {
             ) {
                 Button(
                     onClick = {
-                        navController.navigate("BackgroundDetailScreen/$imageId?imageName=$imageName")
+                        if(!hasVisitedSettings!!) {
+                            secret_box = true
+                        }else{
+                            navController.navigate("BackgroundDetailScreen/$imageId?imageName=$imageName")
+                        }
+
                     },
                     modifier = Modifier.weight(1f)
                 ) {
                     Text("도면 설정")
+
                 }
             }
         }
