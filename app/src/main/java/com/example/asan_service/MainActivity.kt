@@ -21,32 +21,39 @@ import com.example.asan_service.feature.MoniteringScreen
 import com.example.asan_service.feature.StatisticScreen
 import com.example.asan_service.feature.WatchSettingScreen
 import com.example.asan_service.ui.theme.Asan_ServiceTheme
+import com.example.asan_service.util.StaticResource
+import com.example.asan_service.util.WatchRepository
 import com.example.asan_service.viewmodel.ConnectScreenViewModel
 import com.example.asan_service.viewmodel.ImageViewModel
 import com.example.asan_service.viewmodel.PasswordViewModel
 import com.example.asan_service.viewmodel.ScannerSettingViewModel
 import com.example.asan_service.viewmodel.StaticalViewModel
 import com.example.asan_service.viewmodel.WatchSettingViewModel
-
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 
 class MainActivity : ComponentActivity() {
     private lateinit var db: AppDatabase
     private val MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1
     private lateinit var viewModel: ImageViewModel
-    //    private lateinit var watchSettingViewModel: WatchSettingViewModel
+    private lateinit var repository: WatchRepository
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         db = AppDatabase.getInstance(applicationContext)
+        repository = WatchRepository(db.watchItemDao(), StaticResource.apiService)
         startService(Intent(this, MyWebSocketService::class.java))
         viewModel = ViewModelProvider(this)[ImageViewModel::class.java]
-//        watchSettingViewModel = ViewModelProvider(this)[WatchSettingViewModel::class.java]
         val passwordViewModel: PasswordViewModel = PasswordViewModel()
 
-
-        WatchSettingViewModel(db.watchItemDao()).getCountBeacon()
+        WatchSettingViewModel(repository,db.watchItemDao()).getCountBeacon()
         viewModel.getImageList()
         viewModel.getPositionList()
+
+        GlobalScope.launch(Dispatchers.IO) {
+            db.watchItemDao().deleteAllWatchUser()
+        }
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED
@@ -117,7 +124,7 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("WatchSettingScreen/{watchId}/{watchName}/{connected}") {
                             WatchSettingScreen(navController,viewModel,
-                                ConnectScreenViewModel(db.watchItemDao()),WatchSettingViewModel(db.watchItemDao())
+                                ConnectScreenViewModel(db.watchItemDao()),WatchSettingViewModel(repository,db.watchItemDao())
                             )
                         }
                         composable("MoniteringScreen/{imageId}?imageName={imageName}") {
