@@ -25,6 +25,9 @@ import com.example.asan_service.PositionListResponse
 import com.example.asan_service.StatusResponse
 import com.example.asan_service.UploadImageResponse
 import com.example.asan_service.dao.WatchItemDao
+import com.example.asan_service.util.PositionInfo
+import com.example.asan_service.util.PositionRepository
+import com.example.asan_service.util.StaticResource
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -73,41 +76,42 @@ class ImageViewModel() : ViewModel() {
     private val _posotions = MutableStateFlow<Map<Long, String>>(emptyMap())
     val collectPosition: StateFlow<Map<Long, String>> = _posotions.asStateFlow()
 
+    val watchPositions: LiveData<Map<String, com.example.asan_service.util.PositionInfo>> = PositionRepository.positions
+
+//    private val _watchPositions = MutableLiveData<HashMap<String, PositionInfo>>(HashMap())
+//    val watchPositions: LiveData<HashMap<String, PositionInfo>> = _watchPositions
 
 
-    private val _watchPositions = MutableLiveData<HashMap<String, PositionInfo>>(HashMap())
-    val watchPositions: LiveData<HashMap<String, PositionInfo>> = _watchPositions
+
+//    fun updatePositionInfo(watchId: String, position: String, name: String) {
+//        PositionRepository.updatePosition(watchId, position, name)
+//    }
+
+//    fun updatePositionInfo(watchId: String, position: String, name: String) {
+//
+//        val currentMap = _watchPositions.value ?: HashMap()
+//        currentMap[watchId] = PositionInfo(position, name)
+//
+//
+//        _watchPositions.value = HashMap(currentMap)
+//
+//    }
+//
+//
+//    fun removePositionInfo(watchId: String) {
+//        val currentMap = _watchPositions.value ?: return
+//        currentMap.remove(watchId)
+//        _watchPositions.value = currentMap
+//    }
 
 
-    fun updatePositionInfo(watchId: String, position: String, name: String) {
 
-        val currentMap = _watchPositions.value ?: HashMap()
-
-        // PositionInfo에 timestamp가 추가되어 있으므로,
-        // 동일한 watchId, position, name이라도 timestamp의 변경으로 인해
-        // 항상 새로운 값으로 간주됩니다.
-        currentMap[watchId] = PositionInfo(position, name)
-
-        // LiveData 업데이트
-        _watchPositions.value = HashMap(currentMap)
-        Log.e("살려줘 제발",watchPositions.value.toString())
-    }
+//    fun removePositionInfo(watchId: String) {
+//        PositionRepository.removePosition(watchId)
+//    }
 
 
-    fun removePositionInfo(watchId: String) {
-        val currentMap = _watchPositions.value ?: return
-        currentMap.remove(watchId)
-        _watchPositions.value = currentMap
-    }
-
-
-    private val retrofit = Retrofit.Builder()
-        .baseUrl("http://210.102.178.186:8080/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-
-
-    private val apiService = retrofit.create(ApiService::class.java)
+    private val apiService = StaticResource.apiService
 
 
 
@@ -270,7 +274,7 @@ class ImageViewModel() : ViewModel() {
         val requestBody = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
         val part = MultipartBody.Part.createFormData("imageData", file.name, requestBody)
 
-        val apiService = retrofit.create(ApiService::class.java)
+
         val call = apiService.uploadImage(part)
         call.enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
@@ -310,7 +314,6 @@ class ImageViewModel() : ViewModel() {
         endX: Float,
         endY: Float
     ) {
-        val apiService = retrofit.create(ApiService::class.java)
 
         val dragData = DragData(
             imageId = imageId,
