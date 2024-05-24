@@ -73,13 +73,12 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel, pa
     val imageName = navController.currentBackStackEntry?.arguments?.getString("imageName")
     val imageData = viewModel.imageData.observeAsState().value
     val coordinateList = viewModel.coordinateList.observeAsState().value
-    val coroutineScope = rememberCoroutineScope()
-    val timers = remember { mutableMapOf<String, Job>() }
     val dotInfos = remember { mutableStateListOf<DotInfo>() }
-    var watchPositions = viewModel.watchPositions.observeAsState().value
+    val watchPositions = viewModel.watchPositions.observeAsState().value ?: emptyMap()
     val hasVisitedSettings by passwordViewModel.hasVisitedSettings.observeAsState()
     var secret_box by remember { mutableStateOf(false) }
     var text by remember { mutableStateOf("") }
+
 
 
 
@@ -88,57 +87,26 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel, pa
             viewModel.fetchImageData(imageId)
             viewModel.getPositionAndCoordinateList(imageId)
         }
-        Log.e("watchPositions1",watchPositions.toString())
-    }
-
-    DisposableEffect(context) {
-        val intentFilter = IntentFilter("com.example.asan_service.POSITION_UPDATE")
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                val watchId = intent?.getStringExtra("watchId")
-                val position = intent?.getStringExtra("position")
-                val name = intent?.getStringExtra("watchName")
-                if (watchId != null && position != null && name != null) {
-                    // 해당 watchId에 대한 기존 타이머 취소
-                    timers[watchId]?.cancel()
-
-                    viewModel.updatePositionInfo(watchId,position,name)
-
-                    // 이 watchId에 대한 새 타이머 설정
-                    timers[watchId] = coroutineScope.launch {
-                        delay(10000) // 10초 대기
-                        // 지연 후 이 watchId 제거
-                        viewModel.removePositionInfo(watchId)
-                        timers.remove(watchId) // 타이머 제거
-                    }
-                }
-            }
-        }
-        Log.e("watchPosition4s",watchPositions.toString())
-        LocalBroadcastManager.getInstance(context).registerReceiver(receiver, intentFilter)
-        onDispose {
-            LocalBroadcastManager.getInstance(context).unregisterReceiver(receiver)
-            // 컴포저블이 제거될 때 모든 타이머를 취소합니다.
-            timers.values.forEach { it.cancel() }
-        }
 
     }
 
-    Log.e("watchPositions2",watchPositions.toString())
+
 
 
     LaunchedEffect(watchPositions) {
         dotInfos.clear() // 기존 위치 정보를 클리어
-        Log.e("업데이트 있니?","네")
-        Log.e("watchPositions3",watchPositions.toString())
+        Log.e("업데이트 있니?", "네")
+        Log.e("watchPositions3", watchPositions.toString())
         // dragDataList의 각 항목에 대해서 실행
         dragDataList.forEach { dragData ->
             // 현재 dragData의 position에 해당하는 watchId 및 name 정보를 담는 임시 리스트 생성
             val tempInfos = mutableListOf<DotInfo>()
 
-
             watchPositions?.forEach { (watchId, positionInfo) ->
-                // positionInfo의 position과 dragData.position을 비교
+                Log.e(
+                    "positionInfoDebug",
+                    "Comparing ${positionInfo.position} to ${dragData.position}"
+                )
                 if (positionInfo.position == dragData.position) {
                     val dotPosition = Offset(
                         dragData.startX + (dragData.endX - dragData.startX) / 2,
@@ -172,8 +140,8 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel, pa
                 }
             }
         }
-    }
 
+    }
 
 
 
@@ -322,8 +290,6 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel, pa
                         imageData?.let {
                             DisplayImageUrlImage(imageData.imageUrl)
                         }
-
-
 
                         Canvas(modifier = Modifier.fillMaxSize()) {
 
