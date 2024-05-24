@@ -1,6 +1,7 @@
 package com.example.asan_service.viewmodel
 
 import android.util.Log
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,6 +14,9 @@ import com.example.asan_service.ImageListResponse
 import com.example.asan_service.PositionList
 import com.example.asan_service.PositionNameData
 import com.example.asan_service.dao.WatchItemDao
+import com.example.asan_service.parser.WatchItem
+import com.example.asan_service.util.StaticResource
+import com.example.asan_service.util.WatchRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -23,19 +27,15 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class WatchSettingViewModel(private val userDao: WatchItemDao) : ViewModel() {
+class WatchSettingViewModel(private val repository: WatchRepository, private val userDao: WatchItemDao) : ViewModel() {
 
     private val _beaconCountList = MutableLiveData<List<BeaconCount>?>()
     val beaconCountList: LiveData<List<BeaconCount>?> = _beaconCountList
 
 
-    private val retrofit = Retrofit.Builder()
-        .baseUrl("http://210.102.178.186:8080/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
+    private val apiService = StaticResource.apiService
 
-
-    private val apiService = retrofit.create(ApiService::class.java)
+//    val watchListLiveData: LiveData<List<WatchItem>> = repository.watchListLiveData
 
 
     fun deleteWatch(id: Long) {
@@ -45,6 +45,7 @@ class WatchSettingViewModel(private val userDao: WatchItemDao) : ViewModel() {
                     // Handle successful image deletion
                     viewModelScope.launch(Dispatchers.IO) {
                         userDao.deleteWatch(id.toString())
+                        repository.deleteWatch(id)
                     }
 
                     Log.d("deleteWatch", "watch successfully deleted")
