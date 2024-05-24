@@ -2,6 +2,7 @@ package com.example.asan_service
 
 
 
+import com.example.asan_service.parser.WatchResponse
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.Call
@@ -9,6 +10,7 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.HTTP
+import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
@@ -128,7 +130,13 @@ data class PositionNameData(
 )
 
 
+
+
 interface ApiService {
+
+    @GET("/api/watch")
+    suspend fun getWatchList(@Header("Authorization") token: String): WatchResponse
+
     @Multipart
     @POST("api/image/saveImage")
     fun uploadImage(@Part image: MultipartBody.Part): Call<ResponseBody>
