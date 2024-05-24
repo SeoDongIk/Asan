@@ -74,6 +74,7 @@ fun WatchSettingScreen(navController: NavHostController, viewModel: ImageViewMod
         watchId?.let {
             viewModel.getCollectionStatus(it.toString())
             watchSettingViewModel.getCountBeacon()
+            viewModel.getPositionList()
         }
         Log.d("savedEndTime",savedEndTime.toString())
     }
