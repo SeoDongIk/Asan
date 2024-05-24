@@ -19,6 +19,9 @@ interface WatchItemDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertAll(watchItems: List<WatchItemEntity>)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(watchItems: WatchItemEntity)
+
     @Delete
     fun delete(watchItem: WatchItemEntity)
 
@@ -31,4 +34,7 @@ interface WatchItemDao {
 
     @Query("DELETE FROM watch_item_entities WHERE watchId = :watchId")
     fun deleteWatch(watchId: String)
+
+    @Query("DELETE FROM watch_item_entities")
+    fun deleteAllWatchUser()
 }
