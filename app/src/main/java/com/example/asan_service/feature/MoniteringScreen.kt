@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.bumptech.glide.Glide
 import com.example.asan_service.util.PositionUpdateReceiver
+import com.example.asan_service.util.StaticResource
 import com.example.asan_service.viewmodel.ImageViewModel
 import com.example.asan_service.viewmodel.MonitorViewModel
 import com.example.asan_service.viewmodel.PasswordViewModel
@@ -307,13 +308,13 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel, pa
                                     rotate(90f, position.x, position.y)
                                     val textPaint = android.graphics.Paint().apply {
                                         color = android.graphics.Color.BLACK
-                                        textSize = 35f
+                                        textSize = 22f
                                         textAlign = android.graphics.Paint.Align.CENTER
                                         typeface = android.graphics.Typeface.DEFAULT_BOLD
                                     }
 
                                     drawText(
-                                        " Name: $name",
+                                        "$name",
                                         position.x,
                                         position.y + 40f,
                                         textPaint
@@ -408,7 +409,7 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel, pa
 fun DisplayImageUrlImage(imageUrl: String) {
     val context = LocalContext.current
     val imageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
-    val fullUrl = "http://210.102.178.186:8080" + imageUrl
+    val fullUrl = StaticResource.getHttpUrlWithoutSlash() + imageUrl
     Log.d("fullUrl",fullUrl)
     // 이미지 URL이 변경될 때마다 이미지를 다시 로드합니다.
     LaunchedEffect(fullUrl) {
