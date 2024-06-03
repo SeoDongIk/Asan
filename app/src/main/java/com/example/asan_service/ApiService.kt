@@ -125,6 +125,10 @@ data class NameHostData(
     val host: String,
 )
 
+data class SendStateData(
+    val watchId: Long,
+)
+
 data class PositionNameData(
     val position : String
 )
@@ -152,13 +156,16 @@ interface ApiService {
     @POST("/api/location/insertState")
     fun insertState(@Body state: InsertStateData): Call<ResponseBody>
 
-    @POST("/api/location/deleteState")
+
+    @HTTP(method = "DELETE", path="/api/location/deleteState", hasBody = true)
     fun deleteState(@Body state: DeleteStateData): Call<ResponseBody>
 
     // 환자 이름 변경
     @POST("/api/watch/{id}")
     fun changeName(@Path("id") id: Long, @Body namehostData: NameHostData ): Call<ResponseBody>
 
+    @POST("/api/sensor/sendState")
+    fun insertSendState(@Body sendStateData : SendStateData ): Call<ResponseBody>
 
     @GET("/api/location/getCollectionStatus/{id}")
     fun getCollectionStatus(@Path("id") androidId : String) : Call<StatusResponse>
