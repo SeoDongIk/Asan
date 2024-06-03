@@ -1,12 +1,7 @@
 package com.example.asan_service.feature
 
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -20,7 +15,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -33,16 +27,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.asan_service.BeaconCount
 import com.example.asan_service.MyWebSocketService
 import com.example.asan_service.PositionList
 import com.example.asan_service.PositionNameData
-import com.example.asan_service.R
 import com.example.asan_service.viewmodel.ConnectScreenViewModel
 import com.example.asan_service.viewmodel.ImageViewModel
-import com.example.asan_service.viewmodel.ScannerSettingViewModel
 import com.example.asan_service.viewmodel.WatchSettingViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -759,7 +750,7 @@ fun BeaconTable(beaconCounts: List<BeaconCount>, watchSettingViewModel: WatchSet
                             .padding(2.dp) // 패딩을 줄여 버튼의 전체 크기 감소
 
                     ) {
-                        Text("init", fontSize = 10.sp) // 텍스트 크기도 조정 가능
+                        Text("init", fontSize = 5.sp) // 텍스트 크기도 조정 가능
                     }
 
                 }
