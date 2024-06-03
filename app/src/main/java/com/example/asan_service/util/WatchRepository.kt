@@ -12,6 +12,9 @@ class WatchRepository(private val userDao: WatchItemDao, private val apiService:
     private val _watchListLiveData = MutableLiveData<List<WatchItem>>()
     val watchListLiveData: LiveData<List<WatchItem>> = _watchListLiveData
 
+
+
+
      suspend fun fetchWatchList() {
         try {
             val response = apiService.getWatchList("9999999")
@@ -25,12 +28,12 @@ class WatchRepository(private val userDao: WatchItemDao, private val apiService:
         }
     }
 
-    fun deleteWatch(id: Long) {
+    suspend fun deleteWatch(id: Long) {
         try {
             val response = apiService.deleteWatch(id).execute()
             if (response.isSuccessful) {
                 userDao.deleteWatch(id.toString())
-                _watchListLiveData.postValue(_watchListLiveData.value?.filter { it.watchId != id })
+                fetchWatchList()
             }
         } catch (e: Exception) {
             Log.e("WatchRepository", "Error deleting watch", e)
