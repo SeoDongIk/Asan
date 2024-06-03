@@ -8,7 +8,6 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.asan_service.ApiService
 import com.example.asan_service.CoordinateData
 import com.example.asan_service.DeleteStateData
 import com.example.asan_service.DragData
@@ -24,8 +23,6 @@ import com.example.asan_service.PositionList
 import com.example.asan_service.PositionListResponse
 import com.example.asan_service.StatusResponse
 import com.example.asan_service.UploadImageResponse
-import com.example.asan_service.dao.WatchItemDao
-import com.example.asan_service.util.PositionInfo
 import com.example.asan_service.util.PositionRepository
 import com.example.asan_service.util.StaticResource
 import com.google.gson.Gson
@@ -40,8 +37,6 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
