@@ -44,6 +44,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import kotlin.random.Random
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -175,8 +176,14 @@ fun BackgroundDetailScreen(navController : NavController,viewModel: ImageViewMod
 
                             Log.d("zxcv",location.toString())
 
-                            val latitude = location?.latitude.toString()
-                            val longitude = location?.longitude.toString()
+                            val latitude = location?.latitude?.let {
+                                it + getRandomOffset() * if (Random.nextBoolean()) 1 else -1
+                            }.toString()
+
+                            val longitude = location?.longitude?.let {
+                                it + getRandomOffset() * if (Random.nextBoolean()) 1 else -1
+                            }.toString()
+
 
                             val startX = dragStart.x
                             val endX = dragEnd.x
@@ -466,7 +473,12 @@ fun BackgroundDetailScreen(navController : NavController,viewModel: ImageViewMod
     }
 }
 
-
+fun getRandomOffset(): Double {
+    // 0.000000001 ~ 0.0000001 사이의 랜덤 값 생성
+    val min = 0.000000001
+    val max = 0.0000001
+    return min + (max - min) * Random.nextDouble()
+}
 
 @Composable
 fun DisplayImageUrlImage(imageUrl: String) {
