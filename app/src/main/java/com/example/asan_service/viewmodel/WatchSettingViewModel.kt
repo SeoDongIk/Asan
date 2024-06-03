@@ -11,8 +11,10 @@ import com.example.asan_service.BeaconCount
 import com.example.asan_service.BeaconCountResponse
 import com.example.asan_service.ImageDataList
 import com.example.asan_service.ImageListResponse
+import com.example.asan_service.NameHostData
 import com.example.asan_service.PositionList
 import com.example.asan_service.PositionNameData
+import com.example.asan_service.SendStateData
 import com.example.asan_service.dao.WatchItemDao
 import com.example.asan_service.parser.WatchItem
 import com.example.asan_service.util.StaticResource
@@ -38,6 +40,8 @@ class WatchSettingViewModel(private val repository: WatchRepository, private val
 //    val watchListLiveData: LiveData<List<WatchItem>> = repository.watchListLiveData
 
 
+
+
     fun deleteWatch(id: Long) {
         apiService.deleteWatch(id).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
@@ -45,7 +49,7 @@ class WatchSettingViewModel(private val repository: WatchRepository, private val
                     // Handle successful image deletion
                     viewModelScope.launch(Dispatchers.IO) {
                         userDao.deleteWatch(id.toString())
-                        repository.deleteWatch(id)
+                        repository.fetchWatchList()
                     }
 
                     Log.d("deleteWatch", "watch successfully deleted")
