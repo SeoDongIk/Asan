@@ -10,7 +10,7 @@ interface ApiService {
     suspend fun getWatchList(@Header("Authorization") token: String): WatchResponse
 
     companion object {
-        private const val BASE_URL = "http://210.102.178.186:8080"
+        private const val BASE_URL = "http://192.168.37.213:8080"
 
         fun create(): ApiService {
             val retrofit = Retrofit.Builder()
