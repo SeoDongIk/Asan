@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.asan_service.core.ApiService
 import com.example.asan_service.core.AppDatabase
 import com.example.asan_service.entity.*
@@ -20,7 +19,6 @@ import okhttp3.OkHttpClient
 import org.json.JSONObject
 import ua.naiksoftware.stomp.Stomp
 import ua.naiksoftware.stomp.StompClient
-import ua.naiksoftware.stomp.dto.LifecycleEvent
 import ua.naiksoftware.stomp.dto.StompHeader
 import ua.naiksoftware.stomp.dto.StompMessage
 import java.util.concurrent.TimeUnit
@@ -33,6 +31,10 @@ class MyWebSocketService : Service() {
     private lateinit var client : StompClient
     private val watchRepository by lazy { WatchRepository(db.watchItemDao(), StaticResource.apiService) }
     private val timers = mutableMapOf<String, Job>()
+
+    companion object {
+        var watchList: MutableList<WatchItem> = mutableListOf()
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -47,18 +49,20 @@ class MyWebSocketService : Service() {
             db.accZDao().deleteAllData()
             db.heartRateDao().deleteAllData()
         }
+
+
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d("service2", "서비스 시작")
-        val watchService = ApiService.create()
         val scope = CoroutineScope(Dispatchers.IO + Job())
 
         scope.launch {
             try {
                 watchRepository.fetchWatchList()
                 delay(3000)
-                var watchList = watchRepository.watchListLiveData.value?.toMutableList()
+                watchList = watchRepository.watchListLiveData.value!!.toMutableList()
+
 
                 if (watchList != null) {
                     Log.d("service2", "0-1차 연결 : $watchList")
@@ -67,7 +71,7 @@ class MyWebSocketService : Service() {
                     client.waitForConnection()
                     Log.d("service2", "0-2차 연결 : 소켓 연결 완료 (구독 준비 중)")
 
-                    subscribeToWatchListUpdates(watchList)
+                    subscribeToWatchListUpdates()
                     subscribeToSensorData(watchIds)
                 }
             } catch (e: Exception) {
@@ -77,24 +81,31 @@ class MyWebSocketService : Service() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun CoroutineScope.subscribeToWatchListUpdates(watchList: MutableList<WatchItem>) {
+    private fun CoroutineScope.subscribeToWatchListUpdates() {
         launch {
             client.subscribe("/queue/sensor/9999999") { message ->
                 val payload = JSONObject(message.payload)
                 Log.d("service2", "1차 연결 : 연결된 워치 구독 중 -> $payload")
 
                 when (payload.getString("messageType")) {
-                    "WATCH_LIST" -> handleWatchListMessage(payload.getString("data"), watchList)
+                    "WATCH_LIST" -> watchList.let {
+                        handleWatchListMessage(payload.getString("data")
+                        )
+                    }
                     "NEW_WATCH" -> handleNewListMessage(payload.getString("data"))
+                    "DEL_WATCH" -> {
+                        Log.d("service2", "Handling watch deletion.")
+                        handleDeletedWatchMessage(payload.getString("data"))
+                    }
                     else -> Log.d("service2", "POSITION ok")
                 }
             }
         }
     }
 
-    private fun handleWatchListMessage(data: String, watchList: MutableList<WatchItem>) {
+    private fun handleWatchListMessage(data: String) {
         Log.e("messageData", data)
-        Log.e("watchList after deleting "  , watchList.toString())
+        Log.e("왜!!!"  , watchList.toString())
         val inactiveWatchIds = watchList.filter { !data.contains(it.watchId.toString()) }
         Log.d("inactiveWatchIds", inactiveWatchIds.toString())
 
@@ -110,6 +121,7 @@ class MyWebSocketService : Service() {
                 WatchItemEntity(it.watchId.toString(), it.name, it.host, false, System.currentTimeMillis(), "Abcdefghd")
             }
             activeWatchItems + inactiveWatchItems
+
         }
 
         Log.e("watchItemEntities", watchItemEntities.toString())
@@ -127,12 +139,37 @@ class MyWebSocketService : Service() {
             modelName = "Abcdefghd"
         )
 
+        val watchItem = WatchItem(
+            watchId = data.toLong() , name = "지정되지않음" , host = "지정되지않음" )
+
         try {
             db.watchItemDao().insert(watchItemEntity)
+            watchList.add(watchItem)
+            CoroutineScope(Dispatchers.IO).subscribeToSensorData(setOf(data))
             Log.d("service2", "New watch item inserted: $watchItemEntity")
         } catch (e: Exception) {
             Log.e("service2", "Error inserting new watch item", e)
         }
+    }
+
+    private fun handleDeletedWatchMessage(data: String) {
+        Log.d("service2", "Deleted watch message received with data: $data")
+
+        // data에서 받은 watchId 파싱 (Long 타입으로 변환)
+        val watchIdToDelete = data.toLongOrNull()
+
+        // watchId가 유효하면 watchList에서 해당 watchId 제거
+        watchIdToDelete?.let { id ->
+            // watchList에서 해당 워치 ID에 해당하는 워치를 제거
+            val isRemoved = watchList.removeIf { watchItem ->
+                watchItem.watchId == id
+            }
+            if (isRemoved) {
+                Log.d("remove1", "Watch with ID $id removed from the watchList")
+            } else {
+                Log.d("remove2", "No Watch found with ID $id to remove")
+            }
+        } ?: Log.e("remove3", "Invalid watch ID received: $data")
     }
 
     private fun CoroutineScope.subscribeToSensorData(watchIds: Set<String>) {
@@ -159,6 +196,7 @@ class MyWebSocketService : Service() {
     private fun handleAccelerometerMessage(payload: JSONObject, destination: String) {
         val data = payload.getJSONObject("data")
         val watchId = destination.split("/").lastOrNull() ?: "0"
+        Log.d("dataforsenseor" , data.toString())
         val accX = data.getDouble("accX").toFloat()
         val accY = data.getDouble("accY").toFloat()
         val accZ = data.getDouble("accZ").toFloat()
@@ -206,7 +244,7 @@ class MyWebSocketService : Service() {
             .connectTimeout(180, TimeUnit.SECONDS) // 30초로 연결 시간 초과 설정
             .build()
 
-        val client = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://210.102.178.186:8080/ws",null, okHttpClient)
+        val client = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://192.168.37.213:8080/ws",null, okHttpClient)
         val headers = arrayListOf<StompHeader>()
 
         headers.add(StompHeader("Authorization", "9999999"))
