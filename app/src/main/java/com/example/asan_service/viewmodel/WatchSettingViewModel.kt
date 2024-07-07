@@ -35,11 +35,8 @@ class WatchSettingViewModel(private val repository: WatchRepository, private val
     val beaconCountList: LiveData<List<BeaconCount>?> = _beaconCountList
 
 
-    private val apiService = StaticResource.apiService
-
-//    val watchListLiveData: LiveData<List<WatchItem>> = repository.watchListLiveData
-
-
+    private val apiService = StaticResource.apiServiceForSensor
+    private val apiServiceForPosition = StaticResource.apiServiceForPosition
 
 
     fun deleteWatch(id: Long) {
@@ -68,7 +65,7 @@ class WatchSettingViewModel(private val repository: WatchRepository, private val
     }
 
     fun getCountBeacon() {
-        apiService.countBeacon().enqueue(object : Callback<BeaconCountResponse> {
+        apiServiceForPosition.countBeacon().enqueue(object : Callback<BeaconCountResponse> {
             override fun onResponse(call: Call<BeaconCountResponse>, response: Response<BeaconCountResponse>) {
                 if (response.isSuccessful) {
                     // 이미지 목록 업데이트
@@ -87,7 +84,7 @@ class WatchSettingViewModel(private val repository: WatchRepository, private val
     }
 
     fun deleteBeacon(positionNameData: PositionNameData) {
-        apiService.deleteBeacon(positionNameData).enqueue(object : Callback<ResponseBody> {
+        apiServiceForPosition.deleteBeacon(positionNameData).enqueue(object : Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 if (response.isSuccessful) {
                     // Handle successful image deletion

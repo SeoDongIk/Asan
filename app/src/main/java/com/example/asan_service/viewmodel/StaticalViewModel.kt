@@ -21,7 +21,7 @@ class StaticalViewModel(
     private val accZDao: AccZDao,
     private val heartRateDao: HeartRateDao,
     ) : ViewModel() {
-    private val apiService = StaticResource.apiService
+    private val apiService = StaticResource.apiServiceForSensor
 
     val users: LiveData<List<User>> = userDao.getAll().map { watchItems ->
         watchItems.map { watchItem ->

@@ -42,8 +42,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         db = AppDatabase.getInstance(applicationContext)
-        repository = WatchRepository(db.watchItemDao(), StaticResource.apiService)
+        repository = WatchRepository(db.watchItemDao(), StaticResource.apiServiceForSensor)
         startService(Intent(this, MyWebSocketService::class.java))
+        startService(Intent(this, MyWebSocketServiceForPosition::class.java))
         viewModel = ViewModelProvider(this)[ImageViewModel::class.java]
         val passwordViewModel: PasswordViewModel = PasswordViewModel()
 

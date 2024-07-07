@@ -29,7 +29,7 @@ class MyWebSocketService : Service() {
     private val NOTIFICATION_ID = 12345
     private lateinit var db: AppDatabase
     private lateinit var client : StompClient
-    private val watchRepository by lazy { WatchRepository(db.watchItemDao(), StaticResource.apiService) }
+    private val watchRepository by lazy { WatchRepository(db.watchItemDao(), StaticResource.apiServiceForSensor) }
     private val timers = mutableMapOf<String, Job>()
 
     companion object {
@@ -54,7 +54,7 @@ class MyWebSocketService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("service2", "서비스 시작")
+        Log.d("service", "서비스 시작")
         val scope = CoroutineScope(Dispatchers.IO + Job())
 
         scope.launch {
@@ -180,8 +180,6 @@ class MyWebSocketService : Service() {
             destinations.forEach { destination ->
                 client.subscribe(destination) { message ->
                     val payload = JSONObject(message.payload)
-                    Log.d("service2", payload.toString())
-
                     when (payload.getString("messageType")) {
                         "ACCELEROMETER" -> handleAccelerometerMessage(payload, destination)
                         "HEART_RATE" -> handleHeartRateMessage(payload, destination)
@@ -244,7 +242,7 @@ class MyWebSocketService : Service() {
             .connectTimeout(180, TimeUnit.SECONDS) // 30초로 연결 시간 초과 설정
             .build()
 
-        val client = Stomp.over(Stomp.ConnectionProvider.OKHTTP, "ws://192.168.37.213:8080/ws",null, okHttpClient)
+        val client = Stomp.over(Stomp.ConnectionProvider.OKHTTP, StaticResource.getWsURL(),null, okHttpClient)
         val headers = arrayListOf<StompHeader>()
 
         headers.add(StompHeader("Authorization", "9999999"))

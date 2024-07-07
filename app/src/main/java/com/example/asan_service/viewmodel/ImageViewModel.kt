@@ -73,40 +73,8 @@ class ImageViewModel() : ViewModel() {
 
     val watchPositions: LiveData<Map<String, com.example.asan_service.util.PositionInfo>> = PositionRepository.positions
 
-//    private val _watchPositions = MutableLiveData<HashMap<String, PositionInfo>>(HashMap())
-//    val watchPositions: LiveData<HashMap<String, PositionInfo>> = _watchPositions
-
-
-
-//    fun updatePositionInfo(watchId: String, position: String, name: String) {
-//        PositionRepository.updatePosition(watchId, position, name)
-//    }
-
-//    fun updatePositionInfo(watchId: String, position: String, name: String) {
-//
-//        val currentMap = _watchPositions.value ?: HashMap()
-//        currentMap[watchId] = PositionInfo(position, name)
-//
-//
-//        _watchPositions.value = HashMap(currentMap)
-//
-//    }
-//
-//
-//    fun removePositionInfo(watchId: String) {
-//        val currentMap = _watchPositions.value ?: return
-//        currentMap.remove(watchId)
-//        _watchPositions.value = currentMap
-//    }
-
-
-
-//    fun removePositionInfo(watchId: String) {
-//        PositionRepository.removePosition(watchId)
-//    }
-
-
-    private val apiService = StaticResource.apiService
+    private val apiService = StaticResource.apiServiceForPosition
+    private val apiServiceForSensor = StaticResource.apiServiceForSensor
 
 
 
@@ -338,7 +306,7 @@ class ImageViewModel() : ViewModel() {
 
     fun insertState(androidId : String , imageId : Long,position : String, endTime : Long){
         val state = InsertStateData(
-            androidId = androidId,
+            watchId = androidId,
             imageId = imageId,
             position = position,
             endTime = endTime,
@@ -381,7 +349,7 @@ class ImageViewModel() : ViewModel() {
             name = name,
             host = host
         )
-        apiService.changeName(id,nameHostData).enqueue(object :
+        apiServiceForSensor.changeName(id,nameHostData).enqueue(object :
             Callback<ResponseBody> {
             override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                 Log.d("changeName", " name successfully change")
@@ -398,7 +366,7 @@ class ImageViewModel() : ViewModel() {
 
     fun deleteState(androidId : String ){
         val state = DeleteStateData(
-            androidId = androidId
+            watchId = androidId
         )
         apiService.deleteState(state).enqueue(object :
             Callback<ResponseBody> {
