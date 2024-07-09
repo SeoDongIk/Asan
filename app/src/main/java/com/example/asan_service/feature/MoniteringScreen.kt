@@ -68,6 +68,7 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel, pa
     var dragStart by remember { mutableStateOf(Offset.Zero) }
     var dragEnd by remember { mutableStateOf(Offset.Zero) }
     var isDragging by remember { mutableStateOf(false) }
+    val dragDataMap = remember { mutableStateMapOf<String, DragData>() }
     val dragDataList = remember { mutableStateListOf<DragData>() }
     val imageId =
         navController.currentBackStackEntry?.arguments?.getString("imageId")?.toLongOrNull()
@@ -92,81 +93,69 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel, pa
     }
 
 
+    LaunchedEffect(coordinateList) {
+        coordinateList?.let { list ->
+            dragDataMap.clear() // 기존 리스트를 클리어
+            list.forEach { coordinate ->
+                // CoordinateData를 DragData로 변환하여 dragDataMap에 추가
+                dragDataMap[coordinate.position] = DragData(
+                    imageId = coordinate.imageId,
+                    position = coordinate.position,
+                    latitude = coordinate.latitude,
+                    longitude = coordinate.longitude,
+                    startX = coordinate.startX,
+                    startY = coordinate.startY,
+                    endX = coordinate.endX,
+                    endY = coordinate.endY
+                )
+            }
+        }
+    }
+
+
+
 
 
     LaunchedEffect(watchPositions) {
         dotInfos.clear() // 기존 위치 정보를 클리어
         Log.e("업데이트 있니?", "네")
         Log.e("watchPositions3", watchPositions.toString())
-        // dragDataList의 각 항목에 대해서 실행
-        dragDataList.forEach { dragData ->
-            // 현재 dragData의 position에 해당하는 watchId 및 name 정보를 담는 임시 리스트 생성
-            val tempInfos = mutableListOf<DotInfo>()
 
-            watchPositions?.forEach { (watchId, positionInfo) ->
-                Log.e(
-                    "positionInfoDebug",
-                    "Comparing ${positionInfo.position} to ${dragData.position}"
+        val tempInfosMap = mutableMapOf<String, MutableList<DotInfo>>()
+
+        watchPositions.forEach { (watchId, positionInfo) ->
+            val dragData = dragDataMap[positionInfo.position]
+            dragData?.let {
+                val dotPosition = Offset(
+                    it.startX + (it.endX - it.startX) / 2,
+                    it.startY + (it.endY - it.startY) / 2
                 )
-                if (positionInfo.position == dragData.position) {
-                    val dotPosition = Offset(
-                        dragData.startX + (dragData.endX - dragData.startX) / 2,
-                        dragData.startY + (dragData.endY - dragData.startY) / 2
-                    )
-                    tempInfos.add(DotInfo(dotPosition, positionInfo.name))
-                }
+                val infoList = tempInfosMap.getOrPut(positionInfo.position) { mutableListOf() }
+                infoList.add(DotInfo(dotPosition, positionInfo.name))
             }
+        }
 
-            // 동일 position을 공유하는 모든 항목에 대하여 영역을 등분
-            val count = tempInfos.size
-            if (count > 0) {
-                val areaWidth = dragData.endX - dragData.startX
+        tempInfosMap.forEach { (position, tempInfos) ->
+            val dragData = dragDataMap[position]
+            dragData?.let {
+                val count = tempInfos.size
+                val areaWidth = it.endX - it.startX
                 val segmentWidth = areaWidth / count
 
                 tempInfos.forEachIndexed { index, info ->
-                    val dotPositionX = dragData.startX + segmentWidth * index + segmentWidth / 2
-
-                    val dotPositionY = (dragData.startY + dragData.endY) / 2
-                    // 업데이트된 위치 정보로 DotInfo 객체를 다시 생성
-                    dotInfos.add(
-                        DotInfo(
-                            Offset(dotPositionX, dotPositionY),
-//                            info.watchId,
-                            info.name
-                        )
-                    )
-                }
-                dotInfos.forEach { dotInfo ->
-                    Log.e("DotInfo", "Name: ${dotInfo.name}, Position: ${dotInfo.dragosition}")
+                    val dotPositionX = it.startX + segmentWidth * index + segmentWidth / 2
+                    val dotPositionY = (it.startY + it.endY) / 2
+                    dotInfos.add(DotInfo(Offset(dotPositionX, dotPositionY), info.name))
                 }
             }
         }
 
-    }
-
-
-
-
-    LaunchedEffect(coordinateList) {
-        coordinateList?.let { list ->
-            dragDataList.clear() // 기존 리스트를 클리어
-            list.forEach { coordinate ->
-                // CoordinateData를 DragData로 변환하여 dragDataList에 추가
-                dragDataList.add(
-                    DragData(
-                        imageId = coordinate.imageId,
-                        position = coordinate.position,
-                        latitude = coordinate.latitude,
-                        longitude = coordinate.longitude,
-                        startX = coordinate.startX,
-                        startY = coordinate.startY,
-                        endX = coordinate.endX,
-                        endY = coordinate.endY
-                    )
-                )
-            }
+        dotInfos.forEach { dotInfo ->
+            Log.e("DotInfo", "Name: ${dotInfo.name}, Position: ${dotInfo.dragosition}")
         }
     }
+
+
 
 
     Scaffold(
@@ -330,49 +319,6 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel, pa
             }
 
 
-//                        Canvas(modifier = Modifier.fillMaxSize()) {
-//                            drawIntoCanvas { canvas ->
-//                                dragDataList.forEach { dragData ->
-//                                    Log.e("dragDatadragData", dragData.toString())
-//                                    // 직사각형 그리기
-//                                    canvas.drawRect(
-//                                        left = dragData.startX,
-//                                        top = dragData.startY,
-//                                        right = dragData.endX,
-//                                        bottom = dragData.endY,
-//                                        paint = Paint().apply {
-//                                            color = Color.Transparent
-//                                        }
-//                                    )
-//                                    // 텍스트 그리기
-//                                    val textPaint = android.graphics.Paint().apply {
-//                                        color = android.graphics.Color.BLACK
-//                                        textSize = 40f // 텍스트 크기 설정
-//                                    }
-//                                    val centerX = (dragData.startX + dragData.endX) / 2
-//                                    val centerY = (dragData.startY + dragData.endY) / 2
-//                                    canvas.nativeCanvas.drawText(
-//                                        dragData.position,
-//                                        centerX - textPaint.measureText(dragData.position) / 2, // 텍스트를 중앙에 위치시킵니다.
-//                                        centerY + textPaint.textSize / 3, // 텍스트의 Y 위치를 조정합니다.
-//                                        textPaint
-//                                    )
-//                                }
-//                            }
-//                            matchingPosition.value?.let { dragData ->
-//                                drawCircle(
-//                                    color = Color.Red,
-//                                    center = Offset(
-//                                        (dragData.startX + dragData.endX) / 2,
-//                                        (dragData.startY + dragData.endY) / 2
-//                                    ),
-//                                    radius = 20f, // 크기를 조절하여 원하는 크기의 점을 그립니다.
-//                                    style = Fill // 빨간 점을 채워서 그립니다.
-//                                )
-//                            }
-//                        }
-
-
 
 
             Spacer(modifier = Modifier.weight(0.005f, fill = true))
@@ -409,7 +355,7 @@ fun MoniteringScreen(navController : NavController,viewModel: ImageViewModel, pa
 fun DisplayImageUrlImage(imageUrl: String) {
     val context = LocalContext.current
     val imageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
-    val fullUrl = StaticResource.getHttpUrlWithoutSlash() + imageUrl
+    val fullUrl = StaticResource.getHttpUrlForPositionWithoutSlash() + imageUrl
     Log.d("fullUrl",fullUrl)
     // 이미지 URL이 변경될 때마다 이미지를 다시 로드합니다.
     LaunchedEffect(fullUrl) {
@@ -446,12 +392,3 @@ fun DisplayImageUrlImage(imageUrl: String) {
 }
 
 
-fun calculateDotPosition(dragData: DragData, index: Int, total: Int): Offset {
-    // 예시로, 각 위치에 대해 빨간 점을 수평으로 나열합니다.
-    // 실제 구현에서는 dragData 범위와 index, total 값을 이용하여 적절한 위치 계산 로직을 추가해야 합니다.
-    val gap = (dragData.endX - dragData.startX) / (total + 1) // 빨간 점 사이의 간격
-    val x = dragData.startX + gap * (index + 1) // index에 따른 x 위치
-    val y = (dragData.startY + dragData.endY) / 2 // y 위치는 범위의 중앙으로 고정
-
-    return Offset(x, y)
-}
