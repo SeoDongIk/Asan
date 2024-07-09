@@ -110,14 +110,14 @@ data class BeaconCountResponse(
 )
 
 data class InsertStateData(
-    val androidId: String,
+    val watchId: String,
     val imageId: Long,
     val position: String,
     val endTime : Long
 )
 
 data class DeleteStateData(
-    val androidId: String
+    val watchId: String
 )
 
 data class NameHostData(
